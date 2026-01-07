@@ -3,7 +3,7 @@ import os
 
 from PIL import Image, ImageOps, ImageShow, ImageText, ImageDraw
 
-from edisplay.image_config import DEFAULT_COLOR, MODE_BW, INK_COLOR
+from edisplay.image_config import WHITE, BLACK, IMG_MODE
 from edisplay.fonts import Fira
 from edisplay.nba_results import get_games
 
@@ -18,10 +18,10 @@ MAX_GAMES = COLUMNS * LINES
 
 def generate_image(date_from, date_to, size):
     with Image.open(NBA_LOGO) as im:
-        im = im.convert(MODE_BW)
+        im = im.convert(IMG_MODE)
         ratio = im.width / im.height
-        im = ImageOps.pad(im, size, color=DEFAULT_COLOR, centering=(0.0, 0.5))
-        d = ImageDraw.Draw(im, MODE_BW)
+        im = ImageOps.pad(im, size, color=WHITE, centering=(0.0, 0.5))
+        d = ImageDraw.Draw(im, IMG_MODE)
 
         if not os.path.exists(SAVED_GAMES):
             with open(SAVED_GAMES, 'w') as f:
@@ -52,17 +52,17 @@ def generate_image(date_from, date_to, size):
                 total_height = text_height * LINES
                 y_padding = (size[1] - total_height) / (LINES + 1)
                 y = y_padding + (index % LINES) * (text_height + y_padding)
-                d.text((x, y), text, INK_COLOR)
+                d.text((x, y), text, BLACK)
 
         return im
 
 
 def generate_nba_image(games, size):
     with Image.open(NBA_LOGO) as im:
-        im = im.convert(MODE_BW)
+        im = im.convert(IMG_MODE)
         ratio = im.width / im.height
-        im = ImageOps.pad(im, size, color=DEFAULT_COLOR, centering=(0.0, 0.5))
-        d = ImageDraw.Draw(im, MODE_BW)
+        im = ImageOps.pad(im, size, color=WHITE, centering=(0.0, 0.5))
+        d = ImageDraw.Draw(im, IMG_MODE)
 
         initial_x = size[1] * ratio
         for index, game in enumerate(games[:MAX_GAMES]):
@@ -78,7 +78,7 @@ def generate_nba_image(games, size):
             total_height = text_height * LINES
             y_padding = (size[1] - total_height) / (LINES + 1)
             y = y_padding + (index % LINES) * (text_height + y_padding)
-            d.text((x, y), text, INK_COLOR)
+            d.text((x, y), text, BLACK)
         
         return im
 

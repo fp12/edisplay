@@ -2,7 +2,7 @@ import os
 
 from PIL import Image, ImageShow, ImageText, ImageDraw
 
-from edisplay.image_config import DEFAULT_COLOR, MODE_BW, INK_COLOR
+from edisplay.image_config import WHITE, BLACK, IMG_MODE
 from edisplay.fonts import Quicksand, Fira
 from edisplay.meteo_info import get_info
 
@@ -61,10 +61,10 @@ def get_weather_icon(weather_code):
             im.load()
             return im
     else:
-        im = Image.new(MODE_BW, (32, 32), DEFAULT_COLOR)
-        d = ImageDraw.Draw(im, MODE_BW)
+        im = Image.new(IMG_MODE, (32, 32), WHITE)
+        d = ImageDraw.Draw(im, IMG_MODE)
         text = ImageText.Text(f'{weather_code}', Fira.RETINA.size(28))
-        d.text((0, 0), text, INK_COLOR)
+        d.text((0, 0), text, BLACK)
         return im
 
 
@@ -72,13 +72,13 @@ def generate_image(date_from, date_to, size):
     meteo_current, meteo_daily = get_info(date_from, date_to)
     icon = get_weather_icon(meteo_current.weather_code)
 
-    im = Image.new(MODE_BW, size, DEFAULT_COLOR)
+    im = Image.new(IMG_MODE, size, WHITE)
     im.paste(icon, (0, 10))
     d = ImageDraw.Draw(im)
     text = ImageText.Text(f'{meteo_current.temperature_2m:.0f}°|{meteo_current.apparent_temperature:.0f}°', Quicksand.BOLD.size(50))
     x = icon.getbbox()[2] + 5
     y = 20
-    d.text((x, y), text, INK_COLOR)
+    d.text((x, y), text, BLACK)
 
     has_rain = meteo_current.rain > 0.0
     has_snow = meteo_current.snowfall > 0.0

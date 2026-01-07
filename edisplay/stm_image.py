@@ -2,7 +2,7 @@ from typing import List
 
 from PIL import Image, ImageOps, ImageShow, ImageText, ImageDraw
 
-from edisplay.image_config import DEFAULT_COLOR, MODE_BW, INK_COLOR
+from edisplay.image_config import WHITE, GRAY3, BLACK, IMG_MODE
 from edisplay.fonts import Audiowide, Fira
 from edisplay.stm_info import STMRealtimeAPI
 
@@ -16,10 +16,10 @@ def generate_image(stops : List[str], size):
     stm = STMRealtimeAPI()
 
     with Image.open(BUS_ICON) as im:
-        im = im.convert(MODE_BW)
+        im = im.convert(IMG_MODE)
         ratio = im.width / im.height
-        im = ImageOps.pad(im, size, color=DEFAULT_COLOR, centering=(0.0, 0.5))
-        d = ImageDraw.Draw(im, MODE_BW)
+        im = ImageOps.pad(im, size, color=WHITE, centering=(0.0, 0.5))
+        d = ImageDraw.Draw(im, IMG_MODE)
 
         stops_count = len(stops)
         x = size[1] * ratio + 10
@@ -30,7 +30,7 @@ def generate_image(stops : List[str], size):
             total_height = text_height * stops_count
             y_padding = (size[1] - total_height) // (stops_count + 1)
             y = y_padding + (text_height + y_padding) * stop_index + MAGIC_PADDING
-            d.text((x, y), text, INK_COLOR)
+            d.text((x, y), text, GRAY3)
 
             rect_coords = tuple([int(_x + __x) for _x, __x in zip(text.get_bbox(), (x - 1, y - 3, x + 2, y + 2))])
             d.rectangle(rect_coords, width=2)
@@ -39,7 +39,7 @@ def generate_image(stops : List[str], size):
                 time_text_content = f'{arrival_info.delta}+{arrival_info.delay}m' if arrival_info.delay != 0 else f'{arrival_info.delta}m'
                 time_text = ImageText.Text(time_text_content, Fira.REGULAR.size(35))
                 x_arr = 330 - time_text.get_bbox()[2] if arrival_index == 0 else 410 - time_text.get_bbox()[2]
-                d.text((x_arr, y + 1), time_text, INK_COLOR, align='right')
+                d.text((x_arr, y + 1), time_text, BLACK, align='right')
 
         return im
 

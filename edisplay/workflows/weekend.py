@@ -6,7 +6,7 @@ from edisplay.scheduler import scheduler
 from edisplay.tasks import (
     generate_date_img,
     generate_nba_results_img,
-    assemble_img, display_img,
+    assemble_img, publish_img,
 )
 
 from edisplay.image_config import DATETIME_SIZE, METEO_PANEL_SIZE, STM_PANEL_SIZE, NBA_PANEL_SIZE
@@ -23,6 +23,6 @@ def weekend_6_23_routine():
             generate_nba_results_img.s(now, NBA_PANEL_SIZE),
         ),
         assemble_img.s(),
-        display_img.s()
+        publish_img.s()
     )
     return job.apply_async()

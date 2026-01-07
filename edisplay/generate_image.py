@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageShow, ImageText
 from babel.dates import format_date, format_time
 
-from edisplay.image_config import DEFAULT_COLOR, MODE_BW, WIDTH, HEIGHT, SIZE, INK_COLOR
+from edisplay.image_config import WHITE, BLACK, IMG_MODE, WIDTH, HEIGHT, SIZE
 from edisplay.fonts import Fira, Quicksand
 from edisplay.stm_image import generate_image as stm_image
 from edisplay.nba_image import generate_image as nba_image
@@ -17,23 +17,23 @@ PADDING_DEFAULT = 10
 
 
 def generate_binary(debug=False):
-    im = Image.new(MODE_BW, SIZE, DEFAULT_COLOR)
-    d = ImageDraw.Draw(im, MODE_BW)
+    im = Image.new(IMG_MODE, SIZE, WHITE)
+    d = ImageDraw.Draw(im, IMG_MODE)
 
     ### DATE / TIME
     now = datetime.now()
     formatted_date = format_date(now, format="EEEE d MMMM", locale='fr_FR')
     formatted_time = format_time(now, format="H:mm", locale='fr_FR')
 
-    text = ImageText.Text(formatted_date, Quicksand.LIGHT.size(25))
+    text = ImageText.Text(formatted_date, Quicksand.LIGHT.size(28))
     x = (WIDTH - text.get_length()) / 2.0
     y = PADDING_DEFAULT
-    d.text((x, y), text, INK_COLOR)
+    d.text((x, y), text, BLACK)
 
     y += text.get_bbox()[3] + PADDING_DEFAULT
     text = ImageText.Text(formatted_time, Fira.RETINA.size(100))
     x = (WIDTH - text.get_length()) / 2.0
-    d.text((x, y), text, INK_COLOR)
+    d.text((x, y), text, BLACK)
     y += text.get_bbox()[3] + 50
     ### DATE / TIME
 
@@ -66,7 +66,17 @@ def generate_binary(debug=False):
     ### NBA Results
 
     if debug:
-        ImageShow.show(im)
+        from edisplay.waveshare_epd import epd7in5_V2
+        try:
+            epd = epd7in5_V2.EPD()
+            #epd.init()
+            #epd.Clear()
+            epd.init_4Gray()
+            epd.display_4Gray(epd.getbuffer_4Gray(im))
+            epd.sleep()
+        except IOError as e:
+            print(e)
+        #ImageShow.show(im)
         return None
 
     img_io = BytesIO()

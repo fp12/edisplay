@@ -218,3 +218,4 @@ __marimo__/
 # Project
 tmp/
 secrets.ini
+nohup.out

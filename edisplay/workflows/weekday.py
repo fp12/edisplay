@@ -7,14 +7,14 @@ from edisplay.tasks import (
     generate_date_img, generate_datetime_img,
     generate_meteo_img,
     generate_nba_results_img,
-    assemble_img, display_img,
+    assemble_img, publish_img,
     generate_stm_img
 )
 from edisplay.image_config import DATETIME_SIZE, METEO_PANEL_SIZE, STM_PANEL_SIZE, NBA_PANEL_SIZE
 
 
-@scheduler.task(name='workflows.weekday_6_730_routine')
-def weekday_6_730_routine():
+@scheduler.task(name='workflows.weekday_0600_0730_routine')
+def weekday_0600_0730_routine():
     now = datetime.now()
 
     job = chain(
@@ -25,13 +25,13 @@ def weekday_6_730_routine():
             generate_nba_results_img.s(now, NBA_PANEL_SIZE),
         ),
         assemble_img.s(),
-        display_img.s()
+        publish_img.s()
     )
     return job.apply_async()
 
 
-@scheduler.task(name='workflows.weekday_6_8_routine')
-def weekday_730_830_routine():
+@scheduler.task(name='workflows.weekday_0730_0830_routine')
+def weekday_0730_0830_routine():
     now = datetime.now()
 
     job = chain(
@@ -41,13 +41,13 @@ def weekday_730_830_routine():
             generate_nba_results_img.s(now, NBA_PANEL_SIZE),
         ),
         assemble_img.s(),
-        display_img.s()
+        publish_img.s()
     )
     return job.apply_async()
 
 
-@scheduler.task(name='workflows.weekday_6_8_routine')
-def weekday_830_23_routine():
+@scheduler.task(name='workflows.weekday_0830_2300_routine')
+def weekday_0830_2300_routine():
     now = datetime.now()
 
     job = chain(
@@ -58,6 +58,6 @@ def weekday_830_23_routine():
             # nba results + upcoming games
         ),
         assemble_img.s(),
-        display_img.s()
+        publish_img.s()
     )
     return job.apply_async()
