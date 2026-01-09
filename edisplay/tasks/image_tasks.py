@@ -1,4 +1,5 @@
 import platform
+import time
 from functools import reduce
 
 from edisplay.scheduler import scheduler
@@ -43,18 +44,55 @@ def assemble_img(panels):
     return im
 
 
-@scheduler.task(name='tasks.publish_img')
-def publish_img(img):
+@scheduler.task(name='tasks.publish_img', queue='gpio')
+def publish_img(im):
+    start_time = time.time()
     os_name = platform.system()
     if os_name == 'Windows':
-        ImageShow.show(img)
+        ImageShow.show(im)
     elif os_name == 'Linux':
         from edisplay.waveshare_epd import epd7in5_V2
+        import_time = time.time()
+        print(f"Import time: {import_time - start_time:.2f}s")
+
+        epd = None
         try:
             epd = epd7in5_V2.EPD()
+            init_start = time.time()
+            print(f"EPD object creation: {init_start - import_time:.2f}s")
+            
             epd.init_4Gray()
-            # epd.Clear()
+            init_time = time.time()
+            print(f"EPD init: {init_time - init_start:.2f}s")
+
             epd.display_4Gray(epd.getbuffer_4Gray(im))
+            display_time = time.time()
+            print(f"Display: {display_time - init_time:.2f}s")
+
+            print(f"Total time: {display_time - start_time:.2f}s")
+
+            print('Image published successfully')
+        except Exception as e:
+            print(f'Error publishing to display: {e}')
+
+
+@scheduler.task
+def sleep_display():
+    start_time = time.time()
+    os_name = platform.system()
+    if os_name == 'Linux':
+        from edisplay.waveshare_epd import epd7in5_V2
+        import_time = time.time()
+        print(f"Import time: {import_time - start_time:.2f}s")
+
+        epd = None
+        try:
+            epd = epd7in5_V2.EPD()
+            init_start = time.time()
+            print(f"EPD object creation: {init_start - import_time:.2f}s")
+
             epd.sleep()
-        except IOError as e:
-            print(e)
+            sleep_time = time.time()
+            print(f"Sleep: {sleep_time - init_start:.2f}s")
+        except Exception as e:
+            print(f'Error getting display to sleep: {e}')

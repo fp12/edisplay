@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 from PIL import Image, ImageOps, ImageShow, ImageText, ImageDraw
 
@@ -84,5 +85,6 @@ def generate_nba_image(games, size):
 
 
 if __name__ == '__main__':
-    im = generate_image('2025-12-12', '2025-12-17', (460, 100))
-    ImageShow.show(im)
+    now = datetime.now()
+    im = generate_image('2026-01-07', '2026-01-08', (460, 100))
+    #ImageShow.show(im)

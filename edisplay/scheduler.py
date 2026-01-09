@@ -32,20 +32,50 @@ scheduler.conf.update(
     enable_utc=True,
     beat_schedule_filename=os.path.join('tmp', 'celerybeat-schedule'),
 )
-
+    
 scheduler.autodiscover_tasks(['edisplay.tasks', 'edisplay.workflows'])
 
 scheduler.conf.beat_schedule = {
-    'nightly_routine': {
+    # caching things once during the night
+    'nightly': {
         'task': 'workflows.nightly_routine',
-        'schedule': crontab(hour=4, minute=0),
+        'schedule': crontab(hour=4, minute=0), # 4:00
     },
-    'weekday_600_659_routine': {
-        'task': 'workflows.weekday_0600_0730_routine',
-        'schedule':  crontab(hour='6', minute='*'), # 6:00 AM to 6:59 AM (every minute)
+
+    # 1st early bird
+    'weekday_600_659': {
+        'task': 'workflows.weekday_0600_0659_routine',
+        'schedule':  crontab(hour='6', minute='*'), # 6:00 to 6:59 (every minute)
     },
-    'weekday_700_730_routine': {
-        'task': 'workflows.weekday_0600_0730_routine',
-        'schedule':  crontab(hour='7', minute='0-30'), # 7:00 AM to 7:30 AM (every minute)
+
+    # 2nd early bird
+    'weekday_0700_0729': {
+        'task': 'workflows.weekday_0700_0729_routine',
+        'schedule':  crontab(hour='7', minute='0-29'), # 7:00 to 7:29 (every minute)
+    },
+
+    # late bloomers
+    'weekday_0730_0759': {
+        'task': 'workflows.weekday_0730_0829_routine',
+        'schedule':  crontab(hour='7', minute='30-59'), # 7:30 to 7:59 (every minute)
+    },
+    'weekday_0800_0829': {
+        'task': 'workflows.weekday_0730_0829_routine',
+        'schedule':  crontab(hour='8', minute='0-29'), # 8:00 to 8:29 (every minute)
+    },
+
+    # rest of the day
+    'weekday_0830_0859': {
+        'task': 'workflows.weekday_0830_2300_routine',
+        'schedule':  crontab(hour='8', minute='30-59'), # 8:30 to 8:59 (every minute)
+    },
+    'weekday_0900_2359': {
+        'task': 'workflows.weekday_0830_2300_routine',
+        'schedule':  crontab(hour='9-23', minute='*'), # 9:00 to 23:59 (every minute)
+    },
+
+    'sleep_0000' : {
+        'task': 'tasks.sleep_display',
+        'schedule': crontab(hour=0, minute=0), # midnight
     }
 }
