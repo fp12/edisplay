@@ -13,10 +13,16 @@ ARRIVALS_COUNT = 2
 MAGIC_PADDING = -4  # don't ask
 
 
-@scheduler.task(name='tasks.generate_stm_img')
+@scheduler.task
 def generate_stm_img(stops, size):
-    stm = STMRealtimeAPI()
-    stops_info = stm.get_arrivals_display_multi(stops)
+    stops_info = None
+    try:
+        stm = STMRealtimeAPI()
+        stops_info = stm.get_arrivals_display_multi(stops)
+    except Exception as e:
+        print(f'`generate_stm_img` raised an exception but it was handled: {e}')
+        return {f'error-stm': e}
+
     with Image.open(BUS_ICON) as im:
         im = im.convert(IMG_MODE)
         ratio = im.width / im.height

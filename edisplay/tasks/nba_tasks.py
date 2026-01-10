@@ -17,7 +17,7 @@ CACHED_NBA_RESULTS = os.path.join('tmp', 'nba_results.json')
 CACHED_NBA_RESULTS_IMG = os.path.join('tmp', 'nba_results.json')
 
 
-@scheduler.task(name='tasks.cache_nba_results')
+@scheduler.task
 def cache_nba_results(date_from, date_to):
     with open(CACHED_NBA_RESULTS, mode='r+') as f:
         results = json.load(f)
@@ -36,7 +36,7 @@ def cache_nba_results(date_from, date_to):
             im.save(im_file_path)
 
 
-@scheduler.task(name='tasks.clear_cached_nba_results')
+@scheduler.task
 def clear_cached_nba_results():
     with open(CACHED_NBA_RESULTS, 'w') as f:
         json.dump({}, f)
@@ -52,7 +52,7 @@ def clear_cached_nba_results():
             print(f'Error deleting {file_path}: {e}')
 
 
-@scheduler.task(name='tasks.generate_nba_results_img')
+@scheduler.task
 def generate_nba_results_img(date_to, size):
     date_to = format_date(date_to, format='yyyy-MM-dd') if isinstance(date_to, datetime) else date_to
     im_file_path = os.path.join('tmp', f'nba_results_{date_to}.png')

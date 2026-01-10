@@ -8,7 +8,7 @@ from edisplay.fonts import Fira, Quicksand
 from edisplay.scheduler import scheduler
 
 
-@scheduler.task(name='tasks.generate_date_img')
+@scheduler.task
 def generate_date_img(size):
     im = Image.new(IMG_MODE, size, WHITE)
     d = ImageDraw.Draw(im, IMG_MODE)
@@ -24,7 +24,7 @@ def generate_date_img(size):
     return {'datetime': im}
 
 
-@scheduler.task(name='tasks.generate_datetime_img')
+@scheduler.task
 def generate_datetime_img(size):
     im = Image.new(IMG_MODE, size, WHITE)
     d = ImageDraw.Draw(im, IMG_MODE)

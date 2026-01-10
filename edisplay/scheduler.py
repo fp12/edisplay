@@ -65,13 +65,18 @@ scheduler.conf.beat_schedule = {
     },
 
     # rest of the day
-    'weekday_0830_0859': {
+    #'weekday_0830_0859': {
+    #    'task': 'workflows.weekday_0830_2300_routine',
+    #    'schedule':  crontab(hour='8', minute='30-59'), # 8:30 to 8:59 (every minute)
+    #},
+    #'weekday_0900_2359': {
+    #    'task': 'workflows.weekday_0830_2300_routine',
+    #    'schedule':  crontab(hour='9-23', minute='*'), # 9:00 to 23:59 (every minute)
+    #},
+
+    'weekday_0900_2300': {
         'task': 'workflows.weekday_0830_2300_routine',
-        'schedule':  crontab(hour='8', minute='30-59'), # 8:30 to 8:59 (every minute)
-    },
-    'weekday_0900_2359': {
-        'task': 'workflows.weekday_0830_2300_routine',
-        'schedule':  crontab(hour='9-23', minute='*'), # 9:00 to 23:59 (every minute)
+        'schedule':  crontab(hour='9-23', minute='0'), # 9:00 to 23:00 (every hour)
     },
 
     'sleep_0000' : {

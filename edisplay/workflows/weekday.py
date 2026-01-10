@@ -68,8 +68,8 @@ def weekday_0830_2300_routine():
 
     job = chain(
         group(
-            generate_datetime_img.s(DATETIME_SIZE),
-            # meteo trends
+            generate_date_img.s(DATETIME_SIZE),
+            generate_meteo_img.s(now, now, METEO_PANEL_SIZE),
             # biblio
             generate_nba_results_img.s(now, NBA_PANEL_SIZE),
             # nba upcoming games

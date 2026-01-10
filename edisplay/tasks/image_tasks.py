@@ -2,17 +2,16 @@ import platform
 import time
 from functools import reduce
 
-from edisplay.scheduler import scheduler
-
 from PIL import Image, ImageShow
 
+from edisplay.scheduler import scheduler
 from edisplay.image_config import WHITE, IMG_MODE, WIDTH, HEIGHT, SIZE, PADDING_DEFAULT
 
 
 PADDING_BETWEEN = 50
 
 
-@scheduler.task(name='tasks.assemble_img')
+@scheduler.task
 def assemble_img(panels):
     im = Image.new(IMG_MODE, SIZE, WHITE)
 
@@ -44,7 +43,7 @@ def assemble_img(panels):
     return im
 
 
-@scheduler.task(name='tasks.publish_img', queue='gpio')
+@scheduler.task(queue='gpio')
 def publish_img(im):
     start_time = time.time()
     os_name = platform.system()
@@ -76,7 +75,7 @@ def publish_img(im):
             print(f'Error publishing to display: {e}')
 
 
-@scheduler.task
+@scheduler.task(name='tasks.sleep_display')
 def sleep_display():
     start_time = time.time()
     os_name = platform.system()
