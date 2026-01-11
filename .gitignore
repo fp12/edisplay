@@ -219,3 +219,4 @@ __marimo__/
 tmp/
 secrets.ini
 nohup.out
+google_credentials.json

@@ -11,3 +11,5 @@ requests
 celery
 flower
 redis
+google-auth
+google-api-python-client
