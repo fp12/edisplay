@@ -40,6 +40,11 @@ def assemble_img(panels):
         y = HEIGHT - im_nba.height - PADDING_DEFAULT
         im.paste(im_nba, (x, y))
 
+    if im_library := images.get('library'):
+        x = int((WIDTH - im_library.width) / 2.0)
+        y = HEIGHT - im_library.height - PADDING_DEFAULT
+        im.paste(im_library, (x, y))
+
     return im
 
 

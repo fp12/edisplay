@@ -36,32 +36,38 @@ scheduler.conf.update(
 scheduler.autodiscover_tasks(['edisplay.tasks', 'edisplay.workflows'])
 
 scheduler.conf.beat_schedule = {
+    # clear caches once a week
+    'weekly_0300': {
+        'task': 'workflows.weekly_routine',
+        'schedule': crontab(day_of_week=1, hour=3, minute=0), # Every Monday at 3:00
+    },
+
     # caching things once during the night
-    'nightly': {
+    'nightly_0400': {
         'task': 'workflows.nightly_routine',
         'schedule': crontab(hour=4, minute=0), # 4:00
     },
 
     # 1st early bird
-    'weekday_600_659': {
+    'weekday_0600_659': {
         'task': 'workflows.weekday_0600_0659_routine',
-        'schedule':  crontab(hour='6', minute='*'), # 6:00 to 6:59 (every minute)
+        'schedule':  crontab(day_of_week='mon-thu', hour='6', minute='*'), # Mon-Thu 6:00 to 6:59 (every minute)
     },
 
     # 2nd early bird
     'weekday_0700_0729': {
         'task': 'workflows.weekday_0700_0729_routine',
-        'schedule':  crontab(hour='7', minute='0-29'), # 7:00 to 7:29 (every minute)
+        'schedule':  crontab(day_of_week='mon-fri', hour='7', minute='0-29'), # Mon-Fri 7:00 to 7:29 (every minute)
     },
 
     # late bloomers
     'weekday_0730_0759': {
         'task': 'workflows.weekday_0730_0829_routine',
-        'schedule':  crontab(hour='7', minute='30-59'), # 7:30 to 7:59 (every minute)
+        'schedule':  crontab(day_of_week='mon-fri', hour='7', minute='30-59'), # Mon-Fri 7:30 to 7:59 (every minute)
     },
     'weekday_0800_0829': {
         'task': 'workflows.weekday_0730_0829_routine',
-        'schedule':  crontab(hour='8', minute='0-29'), # 8:00 to 8:29 (every minute)
+        'schedule':  crontab(day_of_week='mon-fri', hour='8', minute='0-29'), # Mon-Fri 8:00 to 8:29 (every minute)
     },
 
     # rest of the day
@@ -76,7 +82,7 @@ scheduler.conf.beat_schedule = {
 
     'weekday_0900_2300': {
         'task': 'workflows.weekday_0830_2300_routine',
-        'schedule':  crontab(hour='9-23', minute='0'), # 9:00 to 23:00 (every hour)
+        'schedule':  crontab(day_of_week='mon-fri', hour='9-23', minute='0'), # Mon-Fri 9:00 to 23:00 (every hour)
     },
 
     'sleep_0000' : {

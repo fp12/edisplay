@@ -1,3 +1,4 @@
+import os
 import json
 from datetime import datetime
 from pathlib import Path
@@ -14,7 +15,7 @@ from edisplay.secrets import get_config
 
 CACHED_LIBRARY_INFO = Path('tmp') / 'library_info.json'
 LIBRARY_LOGO = Path('img') / 'library' / 'book-cover_L.jpg'
-BASE_COORDS = (0, 2, 264, 24)
+BASE_COORDS = (0, 2, 270, 24)
 
 
 def generate_library_info_image(info):
@@ -36,7 +37,7 @@ def generate_library_info_image(info):
             print(text.get_bbox())
             print(rect_coords, rect_coords[3] - rect_coords[1])
             d.rounded_rectangle(rect_coords, radius=30, outline=GRAY2, width=2)
-            d.text((x, y), text, BLACK)
+            d.text((x, y), text, BLACK, features=['+liga'])
             y = rect_coords[3] - 1
 
     return im
@@ -52,8 +53,6 @@ def cache_library_info():
     last_modified = format_date(last_modified, format='yyyy-MM-dd') if isinstance(last_modified, datetime) else last_modified
 
     def date_to_iso(date):
-        print(date)
-        print(datetime.strptime(date, '%d/%m/%Y'))
         return format_date(datetime.strptime(date, '%d/%m/%Y'), format='yyyy-MM-dd')
 
     with open(CACHED_LIBRARY_INFO, mode='r+') as f:
@@ -84,6 +83,18 @@ def clear_cached_library_info():
                 print(f'Deleted: {file_path}')
         except OSError as e:
             print(f'Error deleting {file_path}: {e}')
+
+
+@scheduler.task
+def fetch_library_info_img():
+    files = list(Path('tmp').glob('library_info_*.png'))
+    if not files:
+        return None
+
+    latest = max(files, key=lambda f: f.stem.split('library_info_')[1])
+    if os.path.exists(latest):
+        print(f'Loading cached library image from {latest}')
+        return {'library': Image.open(latest)}
 
 
 if __name__ == '__main__':

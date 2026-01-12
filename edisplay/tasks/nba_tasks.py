@@ -53,7 +53,7 @@ def clear_cached_nba_results():
 
 
 @scheduler.task
-def generate_nba_results_img(date_to, size):
+def fetch_nba_results_img(date_to, size):
     date_to = format_date(date_to, format='yyyy-MM-dd') if isinstance(date_to, datetime) else date_to
     im_file_path = os.path.join('tmp', f'nba_results_{date_to}.png')
     if os.path.exists(im_file_path):
