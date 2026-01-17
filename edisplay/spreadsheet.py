@@ -5,7 +5,7 @@ from datetime import datetime
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
-from edisplay.secrets import get_config
+from edisplay.secrets import get_secret
 
 
 SCOPES = [
@@ -188,13 +188,13 @@ def get_table_content(spreadsheet_id, table_id):
 
 
 if __name__ == '__main__':
-    spreadsheet_id = get_config('Google', 'SpreadsheetId')
+    spreadsheet_id = get_secret('Google', 'SpreadsheetId')
 
     table = 'Cartes'
     worksheet_name = 'Cartes'
     # table_id = get_table_id(spreadsheet_id, worksheet_name, table)
     # logging.debug(f'Table ID for Table {table}: {table_id}')
 
-    table_id = get_config('Google', 'TableId')    
+    table_id = get_secret('Google', 'TableId')    
     info = get_table_content(spreadsheet_id, table_id)
     print([{name: date} for name, _, date in info['rows'][1:]])

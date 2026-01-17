@@ -1,17 +1,20 @@
-import configparser
 import os
-from typing import Dict
+
+import yaml
 
 
-CONFIG_FILE = os.path.join('secrets.ini')
-CONFIG = configparser.ConfigParser()
+CONFIG_FILE = os.path.join('secrets.yaml')
+CONFIG = None
 
 
-if os.path.exists(CONFIG_FILE):
-    CONFIG.read(CONFIG_FILE)
-else:
-    print(f"Warning: Configuration file not found at {CONFIG_FILE}")
+def get_secret(section, key=None):
+    global CONFIG
+    if CONFIG is None:
+        with open(CONFIG_FILE, 'r') as file:
+            CONFIG = yaml.safe_load(file)
 
+    if key is not None:
+        section_found = CONFIG.get(section)
+        return section_found.get(key)
 
-def get_config(section, option, fallback=None) -> Dict:
-    return CONFIG.get(section, option, fallback=fallback)
+    return CONFIG.get(section)

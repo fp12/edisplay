@@ -8,7 +8,7 @@ echo "Archiving old logs..."
 [ -f tmp/celery_workers.log ] && mv tmp/celery_workers.log tmp/celery_workers.log.old
 [ -f tmp/celery_beat.log ] && mv tmp/celery_beat.log tmp/celery_beat.log.old
 
-echo "Fushing Redis"
+echo "Flushing Redis"
 redis-cli FLUSHALL
 
 echo "Purging queue"

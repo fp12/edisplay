@@ -2,15 +2,15 @@ from datetime import datetime
 
 from babel.dates import format_date, format_time
 from PIL import Image, ImageDraw, ImageText, ImageShow
+from celery import shared_task
 
-from edisplay.image_config import WHITE, BLACK, IMG_MODE, WIDTH, PADDING_DEFAULT
+from edisplay.image_config import WHITE, BLACK, IMG_MODE, WIDTH, PADDING_DEFAULT, DATE_SIZE, DATETIME_SIZE
 from edisplay.fonts import Fira, Quicksand
-from edisplay.scheduler import scheduler
 
 
-@scheduler.task
-def generate_date_img(size):
-    im = Image.new(IMG_MODE, size, WHITE)
+@shared_task
+def generate_date_img():
+    im = Image.new(IMG_MODE, DATE_SIZE, WHITE)
     d = ImageDraw.Draw(im, IMG_MODE)
 
     now = datetime.now()
@@ -24,9 +24,9 @@ def generate_date_img(size):
     return {'datetime': im}
 
 
-@scheduler.task
-def generate_datetime_img(size):
-    im = Image.new(IMG_MODE, size, WHITE)
+@shared_task
+def generate_datetime_img():
+    im = Image.new(IMG_MODE, DATETIME_SIZE, WHITE)
     d = ImageDraw.Draw(im, IMG_MODE)
 
     now = datetime.now()
@@ -48,8 +48,8 @@ def generate_datetime_img(size):
 
 
 if __name__ == '__main__':
-    result = generate_date_img((460, 150))
+    result = generate_date_img()
     ImageShow.show(result['datetime'])
 
-    result = generate_datetime_img((460, 150))
+    result = generate_datetime_img()
     ImageShow.show(result['datetime'])

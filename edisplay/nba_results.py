@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 from babel.dates import format_date
 
-from nba_api.stats.endpoints import LeagueGameLog
 
 @dataclass
 class Game:
@@ -49,6 +48,9 @@ def _prio(matchup):
 
 
 def get_games(date_from, date_to):
+    # lazy import
+    from nba_api.stats.endpoints import LeagueGameLog
+
     game_log = LeagueGameLog(date_from_nullable=date_from, date_to_nullable=date_to)
     
     games = {}

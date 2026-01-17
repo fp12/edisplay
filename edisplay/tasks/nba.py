@@ -6,8 +6,8 @@ from pathlib import Path
 
 from babel.dates import format_date
 from PIL import Image
+from celery import shared_task
 
-from edisplay.scheduler import scheduler
 from edisplay.nba_results import get_games
 from edisplay.nba_image import generate_nba_image
 from edisplay.image_config import NBA_PANEL_SIZE
@@ -17,7 +17,7 @@ CACHED_NBA_RESULTS = os.path.join('tmp', 'nba_results.json')
 CACHED_NBA_RESULTS_IMG = os.path.join('tmp', 'nba_results.json')
 
 
-@scheduler.task
+@shared_task
 def cache_nba_results(date_from, date_to):
     with open(CACHED_NBA_RESULTS, mode='r+') as f:
         results = json.load(f)
@@ -36,7 +36,7 @@ def cache_nba_results(date_from, date_to):
             im.save(im_file_path)
 
 
-@scheduler.task
+@shared_task
 def clear_cached_nba_results():
     with open(CACHED_NBA_RESULTS, 'w') as f:
         json.dump({}, f)
@@ -52,10 +52,12 @@ def clear_cached_nba_results():
             print(f'Error deleting {file_path}: {e}')
 
 
-@scheduler.task
-def fetch_nba_results_img(date_to, size):
+@shared_task
+def fetch_nba_results_img(date_to):
     date_to = format_date(date_to, format='yyyy-MM-dd') if isinstance(date_to, datetime) else date_to
     im_file_path = os.path.join('tmp', f'nba_results_{date_to}.png')
     if os.path.exists(im_file_path):
         print(f'Loading cached NBA image from {im_file_path}')
         return {'nba': Image.open(im_file_path)}
+    print('Couldn\'t fetch cached nba image')
+    return {}

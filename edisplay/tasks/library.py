@@ -5,21 +5,22 @@ from pathlib import Path
 
 from babel.dates import format_date
 from PIL import Image, ImageOps, ImageShow, ImageText, ImageDraw
+from celery import shared_task
 
-from edisplay.image_config import WHITE, GRAY2, BLACK, IMG_MODE, WIDTH, PADDING_DEFAULT, LIBRARY_PANEL_SIZE
+from edisplay.image_config import WHITE, BLACK, IMG_MODE, WIDTH, PADDING_DEFAULT, LIBRARY_PANEL_SIZE
 from edisplay.fonts import Fira
-from edisplay.scheduler import scheduler
 from edisplay.spreadsheet import get_table_content
-from edisplay.secrets import get_config
+from edisplay.secrets import get_secret
 
 
 CACHED_LIBRARY_INFO = Path('tmp') / 'library_info.json'
-LIBRARY_LOGO = Path('img') / 'library' / 'book-cover_L.jpg'
+LIBRARY_LOGO = Path('img') / 'library' / 'book-cover_BW.jpg'
 BASE_COORDS = (0, 2, 270, 24)
 
 
 def generate_library_info_image(info):
     with Image.open(LIBRARY_LOGO) as im:
+        im = im.convert(IMG_MODE)
         ratio = im.width / im.height
         im = ImageOps.pad(im, LIBRARY_PANEL_SIZE, color=WHITE, centering=(0.0, 0.5))
         d = ImageDraw.Draw(im, IMG_MODE)
@@ -34,19 +35,17 @@ def generate_library_info_image(info):
             date_formatted = format_date(date, format="d MMMM", locale='fr_FR')
             text = ImageText.Text(f'{entry[0]} -> {date_formatted}', Fira.LIGHT.size(20))
             rect_coords = tuple([int(_x + __x) for _x, __x in zip(BASE_COORDS, (x - 6, y - 2, x + 6, y + 2))])
-            print(text.get_bbox())
-            print(rect_coords, rect_coords[3] - rect_coords[1])
-            d.rounded_rectangle(rect_coords, radius=30, outline=GRAY2, width=2)
+            d.rounded_rectangle(rect_coords, radius=30, outline=BLACK, width=2)
             d.text((x, y), text, BLACK, features=['+liga'])
             y = rect_coords[3] - 1
 
     return im
 
 
-@scheduler.task
+@shared_task
 def cache_library_info():
-    spreadsheet_id = get_config('Google', 'SpreadsheetId')
-    table_id = get_config('Google', 'TableId')
+    spreadsheet_id = get_secret('Google', 'SpreadsheetId')
+    table_id = get_secret('Google', 'TableId')
     info = get_table_content(spreadsheet_id, table_id)
     
     last_modified = info['last_modified']
@@ -60,16 +59,18 @@ def cache_library_info():
         if library_info.get(last_modified) is None:
             library_info[last_modified] = [(name, date_to_iso(date)) for name, _, date in info['rows'][1:]]
 
-            f.seek(0)
-            f.truncate()
-            json.dump(library_info, f)
+            if im: = generate_library_info_image(library_info[last_modified]):
+                im_file_path = Path('tmp') / f'library_info_{last_modified}.png'
+                im.save(im_file_path)
 
-            im_file_path = Path('tmp') / f'library_info_{last_modified}.png'
-            im = generate_library_info_image(library_info[last_modified])
-            im.save(im_file_path)
+                f.seek(0)
+                f.truncate()
+                json.dump(library_info, f)
+            else:
+                print('Something went wrong during the library image generation')
 
 
-@scheduler.task
+@shared_task
 def clear_cached_library_info():
     with open(CACHED_LIBRARY_INFO, 'w') as f:
         json.dump({}, f)
@@ -85,7 +86,7 @@ def clear_cached_library_info():
             print(f'Error deleting {file_path}: {e}')
 
 
-@scheduler.task
+@shared_task
 def fetch_library_info_img():
     files = list(Path('tmp').glob('library_info_*.png'))
     if not files:

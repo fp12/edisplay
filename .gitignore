@@ -217,7 +217,7 @@ __marimo__/
 
 # Project
 tmp/
-secrets.ini
+secrets.yaml
 nohup.out
 google_credentials.json
 .lgd-nfy0

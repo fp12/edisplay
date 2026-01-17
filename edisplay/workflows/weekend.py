@@ -1,25 +1,20 @@
 from datetime import datetime
 
-from celery import chain, group
+from celery import chain, group, shared_task
 
-from edisplay.scheduler import scheduler
-from edisplay.tasks import (
-    generate_date_img,
-    fetch_nba_results_img,
-    assemble_img, publish_img,
-)
-
-from edisplay.image_config import DATETIME_SIZE, METEO_PANEL_SIZE, STM_PANEL_SIZE
+from edisplay.tasks.time import generate_date_img
+from edisplay.tasks.nba import fetch_nba_results_img
+from edisplay.tasks.image import assemble_img, publish_img
 
 
-@scheduler.task(name='workflows.weekend_6_23_routine')
-def weekend_6_23_routine():
+@shared_task
+def routine_0600_2300():
     now = datetime.now()
     
     job = chain(
         group(
-            generate_date_img.s(DATETIME_SIZE),
-            # generate_meteo_img.s(now, now, METEO_PANEL_SIZE),
+            generate_date_img.s(),
+            # generate_meteo_img.s(now, now),
             fetch_nba_results_img.s(now),
         ),
         assemble_img.s(),

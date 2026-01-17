@@ -1,9 +1,9 @@
 import os 
 
 from PIL import Image, ImageOps, ImageText, ImageDraw
+from celery import shared_task
 
-from edisplay.image_config import WHITE, BLACK, IMG_MODE
-from edisplay.scheduler import scheduler
+from edisplay.image_config import WHITE, BLACK, IMG_MODE, STM_PANEL_SIZE
 from edisplay.stm_info import STMRealtimeAPI
 from edisplay.fonts import Audiowide, Fira
 
@@ -13,9 +13,11 @@ ARRIVALS_COUNT = 2
 MAGIC_PADDING = -4  # don't ask
 
 
-@scheduler.task
-def generate_stm_img(stops, size):
-    stops_info = None
+@shared_task
+def generate_stm_img(stops):
+    size = STM_PANEL_SIZE
+
+    stops_info = []
     try:
         stm = STMRealtimeAPI()
         stops_info = stm.get_arrivals_display_multi(stops)

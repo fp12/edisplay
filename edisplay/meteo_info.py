@@ -6,7 +6,7 @@ import openmeteo_requests
 import requests_cache
 from retry_requests import retry
 
-from edisplay.secrets import get_config
+from edisplay.secrets import get_secret
 
 
 @dataclass
@@ -63,8 +63,8 @@ def get_info(date_from, date_to):
 
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
-        "latitude": get_config('Meteo', 'Latitude'),
-        "longitude": get_config('Meteo', 'Longitude'),
+        "latitude": get_secret('Meteo', 'Latitude'),
+        "longitude": get_secret('Meteo', 'Longitude'),
         "daily": MeteoDaily.get_variables(),
         "current": MeteoCurrent.get_variables(),
         "timezone": "America/New_York",

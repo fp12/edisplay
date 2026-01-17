@@ -6,7 +6,7 @@ import requests
 from google.transit import gtfs_realtime_pb2
 from datetime import datetime
 
-from edisplay.secrets import get_config
+from edisplay.secrets import get_secret
 
 
 OCCUPANCY_LEVELS = {
@@ -44,7 +44,7 @@ class STMRealtimeAPI:
     BASE_URL = "https://api.stm.info/pub/od/gtfs-rt/ic/v2"
     
     def __init__(self):
-        self.api_key = get_config('STM', 'Key')
+        self.api_key = get_secret('STM', 'Key')
         self.session = requests.Session()
         self.session.headers.update({
             'apikey': self.api_key,
