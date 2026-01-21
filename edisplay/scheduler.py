@@ -58,7 +58,7 @@ scheduler.conf.beat_schedule = {
     # background updates
     'weekday_background': {
         'task': 'edisplay.workflows.common.routine_update_device_presence',
-        'schedule':  crontab(day_of_week='mon-fri', hour='6-22', minute='*'), # Mon-Fri 6:00 to 22:59 (every minute)
+        'schedule':  crontab(day_of_week='mon-fri', hour='6-23', minute='*'), # Mon-Fri 6:00 to 23:59 (every minute)
     },
     'weekend_background': {
         'task': 'edisplay.workflows.common.routine_update_device_presence',
@@ -86,16 +86,6 @@ scheduler.conf.beat_schedule = {
         'task': 'edisplay.workflows.weekday.routine_0730_0829',
         'schedule':  crontab(day_of_week='mon-fri', hour='8', minute='0-29'), # Mon-Fri 8:00 to 8:29 (every minute)
     },
-
-    # rest of the day
-    #'weekday_0830_0859': {
-    #    'task': 'edisplay.workflows.weekday.routine_0830_2300',
-    #    'schedule':  crontab(hour='8', minute='30-59'), # 8:30 to 8:59 (every minute)
-    #},
-    #'weekday_0900_2359': {
-    #    'task': 'edisplay.workflows.weekday.routine_0830_2300',
-    #    'schedule':  crontab(hour='9-23', minute='*'), # 9:00 to 23:59 (every minute)
-    #},
 
     'weekday_0900_2300': {
         'task': 'edisplay.workflows.weekday.routine_0830_2300',

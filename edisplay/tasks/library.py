@@ -59,7 +59,7 @@ def cache_library_info():
         if library_info.get(last_modified) is None:
             library_info[last_modified] = [(name, date_to_iso(date)) for name, _, date in info['rows'][1:]]
 
-            if im: = generate_library_info_image(library_info[last_modified]):
+            if im := generate_library_info_image(library_info[last_modified]):
                 im_file_path = Path('tmp') / f'library_info_{last_modified}.png'
                 im.save(im_file_path)
 
