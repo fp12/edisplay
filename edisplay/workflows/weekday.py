@@ -2,7 +2,8 @@ from datetime import datetime
 
 from celery import chain, group, shared_task
 
-from edisplay.tasks.time import generate_date_img, generate_datetime_img
+from edisplay.tasks.time import generate_date_img, generate_datetime_img, generate_time_img
+from edisplay.tasks.calendar import fetch_events_img
 from edisplay.tasks.meteo import generate_meteo_img
 from edisplay.tasks.nba import fetch_nba_results_img
 from edisplay.tasks.library import fetch_library_info_img
@@ -19,7 +20,8 @@ def routine_0600_0659():
     if is_device_connected('id1'):
         job = chain(
             group(
-                generate_datetime_img.s(),
+                generate_time_img.s(),
+                fetch_events_img.s(now),
                 generate_stm_img.s(['45N']),
                 generate_meteo_img.s(now, now),
                 fetch_library_info_img.s()
@@ -60,6 +62,7 @@ def routine_0730_0829():
         group(
             generate_datetime_img.s(),
             generate_message_img.s('weekday_morning'),
+            fetch_events_img.s(now),
             generate_meteo_img.s(now, now),
             fetch_nba_results_img.s(now),
         ),
@@ -79,7 +82,8 @@ def routine_0830_2300():
         now = datetime.now()
 
         day_group = group(
-            generate_date_img.s(),
+            generate_time_img.s(),
+            fetch_events_img.s(now),
             generate_message_img.s('evening'),
             fetch_nba_results_img.s(now),
             # nba upcoming games
@@ -87,7 +91,8 @@ def routine_0830_2300():
 
         if is_device_connected('id1'):
             day_group = group(
-                generate_datetime_img.s(),
+                generate_time_img.s(),
+                fetch_events_img.s(now),
                 generate_message_img.s('evening'),
                 generate_meteo_img.s(now, now),
                 fetch_library_info_img.s(),

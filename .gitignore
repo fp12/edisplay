@@ -219,5 +219,5 @@ __marimo__/
 tmp/
 secrets.yaml
 nohup.out
-google_credentials.json
+google_credentials*.json
 .lgd-nfy0

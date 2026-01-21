@@ -32,6 +32,11 @@ def assemble_img(panels):
         im.paste(im_message, (x, y))
         y += im_message.height + PADDING_BETWEEN
 
+    if im_calendar := images.get('calendar'):
+        x = int((WIDTH - im_calendar.width) / 2.0)
+        im.paste(im_calendar, (x, y))
+        y += im_calendar.height + PADDING_BETWEEN
+
     if im_stm := images.get('stm'):
         x = int((WIDTH - im_stm.width) / 2.0)
         im.paste(im_stm, (x, y))
