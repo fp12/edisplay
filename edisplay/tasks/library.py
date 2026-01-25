@@ -1,5 +1,3 @@
-import os
-import json
 from datetime import datetime
 from pathlib import Path
 
@@ -11,9 +9,9 @@ from edisplay.image_config import WHITE, BLACK, IMG_MODE, WIDTH, PADDING_DEFAULT
 from edisplay.fonts import Fira
 from edisplay.spreadsheet import get_table_content
 from edisplay.secrets import get_secret
+from edisplay.tasks.utils import clear_cached_images
 
 
-CACHED_LIBRARY_INFO = Path('tmp') / 'library_info.json'
 LIBRARY_LOGO = Path('img') / 'library' / 'book-cover_BW.jpg'
 BASE_COORDS = (0, 2, 270, 24)
 
@@ -30,10 +28,13 @@ def generate_library_info_image(info):
         x = initial_x + PADDING_DEFAULT
         y = 1
 
-        for entry in info:
-            date = datetime.fromisoformat(entry[1])
+        order = get_secret('Library', 'Order')
+        info_dict = dict(info)
+        for key in order:
+            value = info_dict[key]
+            date = datetime.fromisoformat(value)
             date_formatted = format_date(date, format="d MMMM", locale='fr_FR')
-            text = ImageText.Text(f'{entry[0]} -> {date_formatted}', Fira.LIGHT.size(20))
+            text = ImageText.Text(f'{key} -> {date_formatted}', Fira.LIGHT.size(20))
             rect_coords = tuple([int(_x + __x) for _x, __x in zip(BASE_COORDS, (x - 6, y - 2, x + 6, y + 2))])
             d.rounded_rectangle(rect_coords, radius=30, outline=BLACK, width=2)
             d.text((x, y), text, BLACK, features=['+liga'])
@@ -46,44 +47,27 @@ def generate_library_info_image(info):
 def cache_library_info():
     spreadsheet_id = get_secret('Google', 'SpreadsheetId')
     table_id = get_secret('Google', 'TableId')
-    info = get_table_content(spreadsheet_id, table_id)
+    sheet_info = get_table_content(spreadsheet_id, table_id)
     
-    last_modified = info['last_modified']
+    last_modified = sheet_info['last_modified']
     last_modified = format_date(last_modified, format='yyyy-MM-dd') if isinstance(last_modified, datetime) else last_modified
 
-    def date_to_iso(date):
-        return format_date(datetime.strptime(date, '%d/%m/%Y'), format='yyyy-MM-dd')
+    im_path = Path('tmp') / f'library_info_{last_modified}.png'
+    if not im_path.exists():
+        def date_to_iso(date):
+            return format_date(datetime.strptime(date, '%d/%m/%Y'), format='yyyy-MM-dd')
 
-    with open(CACHED_LIBRARY_INFO, mode='r+') as f:
-        library_info = json.load(f)
-        if library_info.get(last_modified) is None:
-            library_info[last_modified] = [(name, date_to_iso(date)) for name, _, date in info['rows'][1:]]
-
-            if im := generate_library_info_image(library_info[last_modified]):
-                im_file_path = Path('tmp') / f'library_info_{last_modified}.png'
-                im.save(im_file_path)
-
-                f.seek(0)
-                f.truncate()
-                json.dump(library_info, f)
-            else:
-                print('Something went wrong during the library image generation')
+        im_info = [(name, date_to_iso(date)) for name, _, date in sheet_info['rows'][1:]]
+        
+        if im := generate_library_info_image(im_info):
+            im.save(im_file_path)
+        else:
+            print('Something went wrong during the library image generation')
 
 
 @shared_task
 def clear_cached_library_info():
-    with open(CACHED_LIBRARY_INFO, 'w') as f:
-        json.dump({}, f)
-
-    directory_path = Path('tmp')
-    pattern = 'library_info_*.png'
-    for file_path in directory_path.glob(pattern):
-        try:
-            if file_path.is_file():
-                file_path.unlink()
-                print(f'Deleted: {file_path}')
-        except OSError as e:
-            print(f'Error deleting {file_path}: {e}')
+    clear_cached_images('library_info_*.png')
 
 
 @shared_task
@@ -93,9 +77,11 @@ def fetch_library_info_img():
         return None
 
     latest = max(files, key=lambda f: f.stem.split('library_info_')[1])
-    if os.path.exists(latest):
+    if Path(latest).exists():
         print(f'Loading cached library image from {latest}')
-        return {'library': Image.open(latest)}
+        with Image.open(latest) as im:
+            # Create a copy so we can close the file safely
+            return {'library': im.copy()}
 
 
 if __name__ == '__main__':

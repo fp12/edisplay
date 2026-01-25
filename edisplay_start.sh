@@ -20,7 +20,7 @@ nohup celery -A edisplay.scheduler worker --loglevel=info --logfile=tmp/celery_g
 sleep 3
 
 echo "Starting Celery workers..."
-nohup celery -A edisplay.scheduler worker --loglevel=info --logfile=tmp/celery_workers.log --concurrency=2 > tmp/nohup_workers.log 2>&1 &
+nohup celery -A edisplay.scheduler worker --loglevel=info --logfile=tmp/celery_workers.log --pool=threads --concurrency=2 > tmp/nohup_workers.log 2>&1 &
 sleep 5
 
 echo "Starting Celery beat..."

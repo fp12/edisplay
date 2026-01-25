@@ -7,6 +7,7 @@ from edisplay.tasks.nba import cache_nba_results, clear_cached_nba_results
 from edisplay.tasks.library import cache_library_info, clear_cached_library_info
 from edisplay.tasks.calendar import cache_events, clear_cached_events
 from edisplay.tasks.image import sleep_display
+from edisplay.tasks.monitoring import dump_health_data
 
 
 @shared_task
@@ -45,5 +46,13 @@ def routine_update_device_presence():
 def routine_sleep_display():
     job = chain(
         sleep_display.si(),
+    )
+    return job.apply_async()
+
+
+@shared_task
+def monitor_performance():
+    job = chain(
+        dump_health_data.si()
     )
     return job.apply_async()

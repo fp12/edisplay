@@ -21,39 +21,38 @@ class Event:
 
 
 def get_events(from_date, to_date, max_results=4):
-  creds = Credentials.from_service_account_file('google_credentials_calendar.json', scopes=SCOPES)
+    creds = Credentials.from_service_account_file('google_credentials_calendar.json', scopes=SCOPES)
 
-  try:
-    service = build('calendar', 'v3', credentials=creds)
+    try:
+        service = build('calendar', 'v3', credentials=creds)
 
-    events_result = (
-        service.events()
-        .list(
-            calendarId=get_secret('Calendar', 'CalendarId'),
-            timeMin=from_date,
-            timeMax=to_date,
-            maxResults=max_results,
-            singleEvents=True,
-            orderBy='startTime',
+        events_result = (
+            service.events()
+            .list(
+                calendarId=get_secret('Calendar', 'CalendarId'),
+                timeMin=from_date,
+                timeMax=to_date,
+                maxResults=max_results,
+                singleEvents=True,
+                orderBy='startTime',
+            )
+            .execute()
         )
-        .execute()
-    )
-    events = events_result.get('items', [])
-    return [Event(
-        summary=e['summary'], 
-        description=e.get('description'), 
-        start=datetime.fromisoformat(e['start']['dateTime']), 
-        end=datetime.fromisoformat(e['end']['dateTime']),
-        location=e.get('location'))
-        for e in events]
+        
+        events = events_result.get('items', [])
+        return [Event(
+            summary=e['summary'], 
+            description=e.get('description'), 
+            start=datetime.fromisoformat(e['start']['dateTime']), 
+            end=datetime.fromisoformat(e['end']['dateTime']),
+            location=e.get('location'))
+            for e in events]
 
-  except HttpError as error:
-    print(f"An error occurred: {error}")
+    except HttpError as error:
+        print(f"An error occurred: {error}")
 
 
 if __name__ == "__main__":
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=timezone.utc) + timedelta(hours=8)
     tomorrow = now + timedelta(days=1)
-    from_date = now.isoformat()
-    to_date = tomorrow.isoformat()
-    pprint(get_events(from_date, to_date))
+    pprint(get_events(now.isoformat(), tomorrow.isoformat()))

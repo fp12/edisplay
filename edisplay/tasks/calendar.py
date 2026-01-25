@@ -2,6 +2,7 @@ import re
 import platform
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
+from string import Template
 
 from PIL import Image, ImageOps, ImageText, ImageDraw, ImageShow
 from celery import shared_task
@@ -11,6 +12,7 @@ from edisplay.image_config import WHITE, BLACK, IMG_MODE, CALENDAR_PANEL_SIZE
 from edisplay.fonts import Quicksand, Fira
 from edisplay.calendar import get_events
 from edisplay.secrets import get_secret
+from edisplay.tasks.utils import clear_cached_images, fetch_cached_image
 
 
 CALENDAR_ICON = Path('img', 'calendar', 'calendar.png')
@@ -26,24 +28,17 @@ def parse_summary(summary):
         return participants, m['title']
 
 
-@shared_task
-def cache_events():
-    now = datetime.now(tz=timezone.utc)
-    tomorrow = now + timedelta(days=1)
-    from_date = now.isoformat()
-    to_date = tomorrow.isoformat()
-    events = get_events(from_date, to_date)
-
+def generate_events_image(events, date):
     with Image.open(CALENDAR_ICON) as im:
         im = im.convert(IMG_MODE)
         ratio = im.width / im.height
         im = ImageOps.pad(im, CALENDAR_PANEL_SIZE, color=WHITE, centering=(0.0, 0.5))
         d = ImageDraw.Draw(im, IMG_MODE)
 
-        text = ImageText.Text(str(now.day), Quicksand.BOLD.size(75))
+        text = ImageText.Text(str(date.day), Quicksand.BOLD.size(75))
         d.text((8, 15), text, BLACK)
         
-        x = CALENDAR_PANEL_SIZE[1] * ratio + 5
+        x = CALENDAR_PANEL_SIZE[1] * ratio + 7
 
         events_num = len(events)
         for index, event in enumerate(events):
@@ -58,37 +53,38 @@ def cache_events():
 
             d.text((x, y), text, BLACK, features=TEXT_FEATURES)
 
-            date_to = format_date(now, format='yyyy-MM-dd')
-            im_file_path = Path('tmp') / f'events_{date_to}.png'
-            im.save(im_file_path)
+        formatted_date = format_date(date, format='yyyy-MM-dd')
+        im_file_path = Path('tmp') / f'events_{formatted_date}.png'
+        im.save(im_file_path)
 
-            return im
+
+@shared_task
+def cache_events():
+    now = datetime.now(tz=timezone.utc)
+
+    tomorrow = now + timedelta(days=1)
+    if events := get_events(now.isoformat(), tomorrow.isoformat()):
+        generate_events_image(events, now)
+        
+    overmorrow = tomorrow + timedelta(days=1)
+    if events := get_events(tomorrow.isoformat(), overmorrow.isoformat()):
+        generate_events_image(events, now)
 
 
 @shared_task
 def clear_cached_events():
-    directory_path = Path('tmp')
-    pattern = 'events_*.png'
-    for file_path in directory_path.glob(pattern):
-        try:
-            if file_path.is_file():
-                file_path.unlink()
-                print(f'Deleted: {file_path}')
-        except OSError as e:
-            print(f'Error deleting {file_path}: {e}')
+    clear_cached_images('events_*.png')
 
 
 @shared_task
 def fetch_events_img(date):
-    date = format_date(date, format='yyyy-MM-dd') if isinstance(date, datetime) else date
-    im_file_path = os.path.join('tmp', f'events_{date_to}.png')
-    if os.path.exists(im_file_path):
-        print(f'Loading cached events image from {im_file_path}')
-        return {'calendar': Image.open(im_file_path)}
-    print('Couldn\'t fetch cached events image')
+    if im := fetch_cached_image(Template('events_$date.png'), date):
+        return {'calendar': im}
     return {}
 
 
 if __name__ == '__main__':
+    im = cache_events()
     if platform.system() == 'Windows':
-        ImageShow.show(cache_calendar_info())
+        ImageShow.show(im)
+

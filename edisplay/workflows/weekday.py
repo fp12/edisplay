@@ -74,7 +74,7 @@ def routine_0730_0829():
 
 @shared_task
 def routine_0830_2300():
-    id0_updated = has_device_status_changed_recently('id1')
+    id0_updated = has_device_status_changed_recently('id0')
     id1_updated = has_device_status_changed_recently('id1')
     id2_updated = has_device_status_changed_recently('id2')
 

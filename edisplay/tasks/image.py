@@ -103,8 +103,16 @@ def publish_img(im, full_refresh=False):
                 COUNT_PARTIAL_REFRESHES += 1
 
             print(f'Image published successfully. {full_refresh_txt} Im[{import_time - start_time:.2f}s] Ob[{init_start - import_time:.2f}s] In[{init_time - init_start:.2f}s] Di[{display_time - init_time:.2f}s] To[{display_time - start_time:.2f}s]')
+        
         except Exception as e:
             print(f'Error publishing to display: {e}')
+        
+        finally:
+            if buffer is not None:
+                del buffer
+
+            import gc
+            gc.collect()
 
 
 @shared_task(queue='gpio')
