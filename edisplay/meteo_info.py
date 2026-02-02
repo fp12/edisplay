@@ -2,10 +2,6 @@ import os
 from dataclasses import dataclass, field, fields
 from typing import List
 
-import openmeteo_requests
-import requests_cache
-from retry_requests import retry
-
 from edisplay.secrets import get_secret
 
 
@@ -57,6 +53,10 @@ class MeteoDaily:
 
 
 def get_info(date_from, date_to):
+    import openmeteo_requests
+    import requests_cache
+    from retry_requests import retry
+
     cache_session = requests_cache.CachedSession(os.path.join('tmp', '.cache'), expire_after = 3600)
     retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
     openmeteo = openmeteo_requests.Client(session = retry_session)

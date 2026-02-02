@@ -40,7 +40,7 @@ def generate_library_info_image(info):
             d.text((x, y), text, BLACK, features=['+liga'])
             y = rect_coords[3] - 1
 
-    return im
+        return im.copy()
 
 
 @shared_task
@@ -60,7 +60,7 @@ def cache_library_info():
         im_info = [(name, date_to_iso(date)) for name, _, date in sheet_info['rows'][1:]]
         
         if im := generate_library_info_image(im_info):
-            im.save(im_file_path)
+            im.save(im_path)
         else:
             print('Something went wrong during the library image generation')
 
@@ -80,6 +80,7 @@ def fetch_library_info_img():
     if Path(latest).exists():
         print(f'Loading cached library image from {latest}')
         with Image.open(latest) as im:
+            im.load()
             # Create a copy so we can close the file safely
             return {'library': im.copy()}
 

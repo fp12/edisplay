@@ -6,6 +6,17 @@ from babel.dates import format_date
 from PIL import Image
 
 
+def independant_chain(tasks):
+    # Iterate backwards to link each task to its successor
+    next_task = None
+    for task in reversed(tasks):
+        if next_task:
+            # Trigger 'next_task' on both success and failure
+            task.set(link=next_task, link_error=next_task)
+        next_task = task
+    return next_task
+
+
 def auto_handle_exceptions(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -34,6 +45,7 @@ def fetch_cached_image(template, date):
     if im_file_path.exists():
         print(f'Loading cached image from {im_file_path}')
         with Image.open(im_file_path) as im:
+            im.load()
             # Create a copy so we can close the file safely
             return im.copy()
     print(f'Couldn\'t fetch cached image {im_file_path}')

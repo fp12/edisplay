@@ -1,5 +1,6 @@
 import platform
 import time
+import gc
 from functools import reduce
 
 from PIL import Image, ImageShow
@@ -8,9 +9,23 @@ from celery import shared_task
 from edisplay.image_config import WHITE, IMG_MODE, WIDTH, HEIGHT, SIZE, PADDING_DEFAULT
 
 
-PADDING_BETWEEN = 50
+PADDING_BETWEEN = 40
 MAX_PARTIAL_REFRESHES = 20
 COUNT_PARTIAL_REFRESHES = MAX_PARTIAL_REFRESHES + 1 # start with a full refresh
+EPD = None
+
+
+def get_epd():
+    global EPD
+    if EPD is None:
+        from edisplay.waveshare_epd import epd7in5_V2
+        EPD = epd7in5_V2.EPD()
+    return EPD
+
+
+def reset_epd():
+    global EPD
+    EPD = None
 
 
 @shared_task(queue='gpio')
@@ -22,40 +37,21 @@ def assemble_img(panels):
 
     y = PADDING_DEFAULT
 
-    if im_datetime := images.get('datetime'):
-        x = int((WIDTH - im_datetime.width) // 2.0)
-        im.paste(im_datetime, (x, y))
-        y += im_datetime.height + PADDING_BETWEEN
+    def vertical_add_image(name):
+        nonlocal y
+        if im_new := images.get(name):
+            x = int((WIDTH - im_new.width) // 2.0)
+            im.paste(im_new, (x, y))
+            y += im_new.height + PADDING_BETWEEN
+            im_new.close()
 
-    if im_message := images.get('message'):
-        x = int((WIDTH - im_message.width) / 2.0)
-        im.paste(im_message, (x, y))
-        y += im_message.height + PADDING_BETWEEN
-
-    if im_calendar := images.get('calendar'):
-        x = int((WIDTH - im_calendar.width) / 2.0)
-        im.paste(im_calendar, (x, y))
-        y += im_calendar.height + PADDING_BETWEEN
-
-    if im_stm := images.get('stm'):
-        x = int((WIDTH - im_stm.width) / 2.0)
-        im.paste(im_stm, (x, y))
-        y += im_stm.height + PADDING_BETWEEN
-
-    if im_meteo := images.get('meteo'):
-        x = int((WIDTH - im_meteo.width) / 2.0)
-        im.paste(im_meteo, (x, y))
-        y += im_meteo.height + PADDING_BETWEEN
-
-    if im_library := images.get('library'):
-        x = int((WIDTH - im_library.width) / 2.0)
-        im.paste(im_library, (x, y))
-        y += im_library.height + PADDING_BETWEEN
-
-    if im_nba := images.get('nba'):
-        x = int((WIDTH - im_nba.width) / 2.0)
-        y = HEIGHT - im_nba.height - PADDING_DEFAULT
-        im.paste(im_nba, (x, y))
+    vertical_add_image('datetime')
+    vertical_add_image('message')
+    vertical_add_image('calendar')
+    vertical_add_image('stm')
+    vertical_add_image('meteo')
+    vertical_add_image('library')
+    vertical_add_image('nba')
 
     return im
 
@@ -72,11 +68,9 @@ def publish_img(im, full_refresh=False):
     if os_name == 'Windows':
         ImageShow.show(im)
     elif os_name == 'Linux':
+        buffer = None
         try:
-            from edisplay.waveshare_epd import epd7in5_V2
-            import_time = time.time()
-
-            epd = epd7in5_V2.EPD()
+            epd = get_epd()
             init_start = time.time()
             init_time = 0
             display_time = 0
@@ -97,36 +91,58 @@ def publish_img(im, full_refresh=False):
                 epd.init_part()
                 init_time = time.time()
 
-                epd.display_Partial(buffer, 0, 0, 800, 480)
+                epd.display_Partial(buffer, 0, 0, HEIGHT, WIDTH)
                 display_time = time.time()
 
                 COUNT_PARTIAL_REFRESHES += 1
 
-            print(f'Image published successfully. {full_refresh_txt} Im[{import_time - start_time:.2f}s] Ob[{init_start - import_time:.2f}s] In[{init_time - init_start:.2f}s] Di[{display_time - init_time:.2f}s] To[{display_time - start_time:.2f}s]')
+            print(f'Image published successfully. {full_refresh_txt} Get[{init_start - start_time:.2f}s] Init[{init_time - init_start:.2f}s] Display[{display_time - init_time:.2f}s] Total[{display_time - start_time:.2f}s]')
         
         except Exception as e:
             print(f'Error publishing to display: {e}')
+            reset_epd()
         
         finally:
             if buffer is not None:
                 del buffer
 
-            import gc
+            if im is not None:
+                im.close()
+
+            try:
+                from edisplay.waveshare_epd import epdconfig
+                epdconfig.module_exit()
+            except Exception as e:
+                print(f'Warning: module_exit failed: {e}')
+
             gc.collect()
 
 
 @shared_task(queue='gpio')
 def sleep_display():
-    os_name = platform.system()
-    if os_name == 'Linux':
-        from edisplay.waveshare_epd import epd7in5_V2
-
-        epd = None
+    if platform.system() == 'Linux':
+        buffer = None
+        im = None
         try:
-            epd = epd7in5_V2.EPD()
+            epd = get_epd()
             epd.init()
             im = Image.new(IMG_MODE, SIZE, WHITE)
-            epd.display(epd.getbuffer(im))
+            buffer = epd.getbuffer(im)
+            epd.display(buffer)
             epd.sleep()
+
+            print(f'Getting to sleep.')
+
         except Exception as e:
             print(f'Error getting display to sleep: {e}')
+
+        finally:
+            if buffer is not None:
+                del buffer
+            
+            if im is not None:
+                im.close()
+
+            reset_epd()
+
+            gc.collect()

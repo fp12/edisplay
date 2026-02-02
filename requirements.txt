@@ -1,12 +1,10 @@
 babel
 pillow
-bottle
 openmeteo-requests
 requests-cache
 retry-requests
 nba_api
 gtfs-realtime-bindings
-pandas
 requests
 celery
 flower

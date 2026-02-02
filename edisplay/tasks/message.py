@@ -22,9 +22,6 @@ def get_content_for_time(category, now_time):
         if msg_time < now_time:
             selected_content = message['content']
 
-    if selected_content is None:
-        print(f'No content for time {now_time} in category: {category}')
-
     return selected_content
 
 
@@ -44,6 +41,20 @@ def generate_message_img(category):
         return {'message': im}
 
     return {}
+
+
+@shared_task
+def generate_boot_img():
+    im = Image.new(IMG_MODE, MESSAGE_SIZE, WHITE)
+    d = ImageDraw.Draw(im, IMG_MODE)
+
+    text = ImageText.Text('BOOTING', Quicksand.BOLD.size(75))
+
+    x = (WIDTH - text.get_length()) / 2.0
+    y = 0
+    d.text((x, y), text, BLACK)
+
+    return {'message': im}
 
 
 if __name__ == '__main__':

@@ -11,12 +11,15 @@ echo "Archiving old logs..."
 echo "Flushing Redis"
 redis-cli FLUSHALL
 
+echo "Deleting celerybeat-schedule"
+rm tmp/celerybeat-schedule
+
 echo "Purging queue"
 celery -A edisplay.scheduler purge -f
 sleep 3
 
 echo "Starting Celery (GPIO) worker..."
-nohup celery -A edisplay.scheduler worker --loglevel=info --logfile=tmp/celery_gpio.log --pool=solo --queues=gpio > tmp/nohup_gpio.log 2>&1 &
+nohup celery -A edisplay.scheduler worker --loglevel=warning --logfile=tmp/celery_gpio.log --pool=solo --queues=gpio > tmp/nohup_gpio.log 2>&1 &
 sleep 3
 
 echo "Starting Celery workers..."
@@ -24,7 +27,7 @@ nohup celery -A edisplay.scheduler worker --loglevel=info --logfile=tmp/celery_w
 sleep 5
 
 echo "Starting Celery beat..."
-nohup celery -A edisplay.scheduler beat --loglevel=info --logfile=tmp/celery_beat.log > tmp/nohup_beat.log 2>&1 &
+nohup celery -A edisplay.scheduler beat --loglevel=warning --logfile=tmp/celery_beat.log > tmp/nohup_beat.log 2>&1 &
 sleep 5
 
 echo "Checking processes..."

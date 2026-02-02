@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from celery import chain, group, shared_task
 
@@ -35,6 +35,7 @@ def routine_0600_0659():
 @shared_task
 def routine_0700_0729():
     now = datetime.now()
+    yesterday = now - timedelta(days=1)
 
     if is_device_connected('id2'):
         id1_updated = has_device_status_changed_recently('id1')
@@ -44,7 +45,7 @@ def routine_0700_0729():
                 generate_datetime_img.s(),
                 generate_stm_img.s(bus_stops),
                 generate_meteo_img.s(now, now),
-                fetch_nba_results_img.s(now),
+                fetch_nba_results_img.s(yesterday),
             ),
             assemble_img.s(),
             publish_img.s()
@@ -55,6 +56,7 @@ def routine_0700_0729():
 @shared_task
 def routine_0730_0829():
     now = datetime.now()
+    yesterday = now - timedelta(days=1)
 
     id1_updated = has_device_status_changed_recently('id1')
 
@@ -64,7 +66,7 @@ def routine_0730_0829():
             generate_message_img.s('weekday_morning'),
             fetch_events_img.s(now),
             generate_meteo_img.s(now, now),
-            fetch_nba_results_img.s(now),
+            fetch_nba_results_img.s(yesterday),
         ),
         assemble_img.s(),
         publish_img.s(full_refresh=id1_updated)
@@ -80,12 +82,13 @@ def routine_0830_2300():
 
     if are_devices_connected(['id0', 'id1', 'id2'], any):
         now = datetime.now()
+        yesterday = now - timedelta(days=1)
 
         day_group = group(
             generate_time_img.s(),
             fetch_events_img.s(now),
             generate_message_img.s('evening'),
-            fetch_nba_results_img.s(now),
+            fetch_nba_results_img.s(yesterday),
             # nba upcoming games
         )
 
@@ -96,7 +99,7 @@ def routine_0830_2300():
                 generate_message_img.s('evening'),
                 generate_meteo_img.s(now, now),
                 fetch_library_info_img.s(),
-                fetch_nba_results_img.s(now),
+                fetch_nba_results_img.s(yesterday),
                 # nba upcoming games
             )
         

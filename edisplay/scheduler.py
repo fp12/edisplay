@@ -31,6 +31,7 @@ scheduler.conf.update(
     result_serializer='pickle',
     timezone='America/Montreal',
     enable_utc=True,
+    result_expires = 60*10,  # 10 minutes
     beat_schedule_filename=os.path.join('tmp', 'celerybeat-schedule'),
 )
 
@@ -43,6 +44,13 @@ scheduler.autodiscover_tasks([
 
 
 scheduler.conf.beat_schedule = {
+    # run once on boot
+    'run-once-at-startup': {
+        'task': 'edisplay.workflows.common.routine_booting',
+        'schedule': timedelta(seconds=1),
+        'options': {'one_off': True}
+    },
+
     # clear caches once a week
     'weekly_0300': {
         'task': 'edisplay.workflows.common.routine_cleaning',
@@ -53,6 +61,12 @@ scheduler.conf.beat_schedule = {
     'nightly_0400': {
         'task': 'edisplay.workflows.common.routine_caching',
         'schedule': crontab(hour=4, minute=0), # 4:00
+    },
+
+    # getting the display to sleep at midnight
+    'sleep_0000' : {
+        'task': 'edisplay.workflows.common.routine_sleep_display',
+        'schedule': crontab(hour=0, minute=0), # midnight
     },
 
     # background updates
@@ -72,7 +86,7 @@ scheduler.conf.beat_schedule = {
     # 1st early bird
     'weekday_0600_659': {
         'task': 'edisplay.workflows.weekday.routine_0600_0659',
-        'schedule':  crontab(day_of_week='mon-thu', hour='6', minute='*'), # Mon-Thu 6:00 to 6:59 (every minute)
+        'schedule': crontab(day_of_week='mon-thu', hour='6', minute='*'), # Mon-Thu 6:00 to 6:59 (every minute)
     },
 
     # 2nd early bird
@@ -99,29 +113,39 @@ scheduler.conf.beat_schedule = {
     # saturday
     'saturday_0900_1359': {
         'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'bus_stops': ['45N']},
+        'kwargs': {'bus_stops': ['45N'], 'nba_results': True},
         'schedule': crontab(day_of_week='sat', hour='9-13', minute='*'), # Sat 9:00 to 13:59 (every minute)
     },
     'saturday_1400_1459': {
         'task': 'edisplay.workflows.weekend.routine_saturday',
+        'kwargs': {'events_today': True, 'nba_results': True},
         'schedule': crontab(day_of_week='sat', hour='14', minute='*'), # Sat 14:00 to 14:59 (every minute)
     },
     'saturday_1500_1530': {
         'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'bus_stops': ['47E']},
+        'kwargs': {'bus_stops': ['47E'], 'nba_results': True},
         'schedule': crontab(day_of_week='sat', hour='15', minute='0-30'), # Sat 15:00 to 15:30 (every minute)
     },
     'saturday_1531_1559': {
         'task': 'edisplay.workflows.weekend.routine_saturday',
+        'kwargs': {'events_today': True, 'nba_results': True},
         'schedule': crontab(day_of_week='sat', hour='15', minute='31-59'), # Sat 15:31 to 15:59 (every minute)
     },
     'saturday_1600_2359': {
         'task': 'edisplay.workflows.weekend.routine_saturday',
+        'kwargs': {'events_tomorrow': True, 'nba_games': True},
         'schedule': crontab(day_of_week='sat', hour='16-23', minute='*'), # Sat 16:00 to 23:59 (every minute)
     },
 
-    'sleep_0000' : {
-        'task': 'edisplay.workflows.common.routine_sleep_display',
-        'schedule': crontab(hour=0, minute=0), # midnight
-    }
+    # sunday
+    'sunday_0900_1659': {
+        'task': 'edisplay.workflows.weekend.routine_sunday',
+        'kwargs': {'events_today': True, 'nba_results': True},
+        'schedule': crontab(day_of_week='sun', hour='9-16', minute='*'), # Sat 9:00 to 16:59 (every minute)
+    },
+    'sunday_1700_2359': {
+        'task': 'edisplay.workflows.weekend.routine_sunday',
+        'kwargs': {'events_tomorrow': True, 'nba_games': True},
+        'schedule': crontab(day_of_week='sun', hour='17-23', minute='*'), # Sat 17:00 to 23:59 (every minute)
+    },
 }

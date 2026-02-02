@@ -36,7 +36,7 @@ def generate_events_image(events, date):
         d = ImageDraw.Draw(im, IMG_MODE)
 
         text = ImageText.Text(str(date.day), Quicksand.BOLD.size(75))
-        d.text((8, 15), text, BLACK)
+        d.text((5, 15), text, BLACK)
         
         x = CALENDAR_PANEL_SIZE[1] * ratio + 7
 
@@ -68,7 +68,7 @@ def cache_events():
         
     overmorrow = tomorrow + timedelta(days=1)
     if events := get_events(tomorrow.isoformat(), overmorrow.isoformat()):
-        generate_events_image(events, now)
+        generate_events_image(events, tomorrow)
 
 
 @shared_task

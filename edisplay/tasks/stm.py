@@ -45,7 +45,7 @@ def generate_stm_img(stops):
             d.rectangle(rect_coords, width=2)
 
             for arrival_index, arrival_info in enumerate(stop_info.arrivals[:ARRIVALS_COUNT]):
-                time_text_content = f'{arrival_info.delta}+{arrival_info.delay}m' if arrival_info.delay != 0 else f'{arrival_info.delta}m'
+                time_text_content = f'{arrival_info.delta}+{arrival_info.delay}min' if arrival_info.delay != 0 else f'{arrival_info.delta}min'
                 time_text = ImageText.Text(time_text_content, Fira.REGULAR.size(35))
                 x_arr = 330 - time_text.get_bbox()[2] if arrival_index == 0 else 410 - time_text.get_bbox()[2]
                 d.text((x_arr, y + 1), time_text, BLACK, align='right')
