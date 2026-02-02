@@ -30,10 +30,17 @@ def reset_epd():
 
 @shared_task(queue='gpio')
 def assemble_img(panels):
+    if isinstance(panels, list):
+        # merging the results (array of dict to single dict)
+        images = reduce(lambda d1, d2: d1 | d2, panels)
+    elif isinstance(panels, dict):
+        # dumping the dict there
+        images = panels
+    else:
+        print(f'Unrelated argument given: {panels=}')
+        return None
+        
     im = Image.new(IMG_MODE, SIZE, WHITE)
-
-    # merging the results (array of dict to single dict)
-    images = reduce(lambda d1, d2: d1 | d2, panels)
 
     y = PADDING_DEFAULT
 
@@ -58,6 +65,10 @@ def assemble_img(panels):
 
 @shared_task(queue='gpio')
 def publish_img(im, full_refresh=False):
+    if im is None:
+        print('`publish_img` was passed a None image - Aborting')
+        return
+
     global COUNT_PARTIAL_REFRESHES
 
     if full_refresh:

@@ -44,13 +44,6 @@ scheduler.autodiscover_tasks([
 
 
 scheduler.conf.beat_schedule = {
-    # run once on boot
-    'run-once-at-startup': {
-        'task': 'edisplay.workflows.common.routine_booting',
-        'schedule': timedelta(seconds=1),
-        'options': {'one_off': True}
-    },
-
     # clear caches once a week
     'weekly_0300': {
         'task': 'edisplay.workflows.common.routine_cleaning',
