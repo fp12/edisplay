@@ -1,4 +1,4 @@
-import os 
+from pathlib import Path
 
 from PIL import Image, ImageOps, ImageText, ImageDraw
 from celery import shared_task
@@ -8,7 +8,7 @@ from edisplay.stm_info import STMRealtimeAPI
 from edisplay.fonts import Audiowide, Fira
 
 
-BUS_ICON = os.path.join('img', 'bus', 'bus-icon.jpg')
+BUS_ICON = Path('img') / 'bus' / 'bus-icon.jpg'
 ARRIVALS_COUNT = 2
 MAGIC_PADDING = -4  # don't ask
 
@@ -32,7 +32,7 @@ def generate_stm_img(stops):
         d = ImageDraw.Draw(im, IMG_MODE)
 
         stops_count = len(stops_info)
-        x = size[1] * ratio + 10
+        x = size[1] * ratio + 4
         for stop_index, stop_info in enumerate(stops_info):
             text = ImageText.Text(stop_info.stop_name, Audiowide.REGULAR.size(35))
             text_height = text.get_bbox()[3]
@@ -44,10 +44,23 @@ def generate_stm_img(stops):
             rect_coords = tuple([int(_x + __x) for _x, __x in zip(text.get_bbox(), (x - 1, y - 3, x + 2, y + 2))])
             d.rectangle(rect_coords, width=2)
 
+            x_arr = rect_coords[2] + 5
             for arrival_index, arrival_info in enumerate(stop_info.arrivals[:ARRIVALS_COUNT]):
                 time_text_content = f'{arrival_info.delta}+{arrival_info.delay}min' if arrival_info.delay != 0 else f'{arrival_info.delta}min'
-                time_text = ImageText.Text(time_text_content, Fira.REGULAR.size(35))
-                x_arr = 330 - time_text.get_bbox()[2] if arrival_index == 0 else 410 - time_text.get_bbox()[2]
-                d.text((x_arr, y + 1), time_text, BLACK, align='right')
+                time_text = ImageText.Text(time_text_content, Fira.REGULAR.size(30))
+                d.text((x_arr, y + 6), time_text, BLACK)
+                x_arr += time_text.get_bbox()[2] + 5
 
         return {'stm': im}
+
+
+if __name__ == '__main__':
+    import platform
+    im = generate_stm_img(['47E'])
+    if platform.system() == 'Windows':
+        from PIL import ImageShow
+        ImageShow.show(im['stm'])
+    elif platform.system() == 'Linux':
+        im_path = Path('tmp') / 'stm_test.png'
+        im['stm'].save(im_path)
+
