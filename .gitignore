@@ -221,3 +221,4 @@ secrets.yaml
 nohup.out
 google_credentials*.json
 .lgd-nfy0
+services/

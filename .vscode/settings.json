@@ -1,0 +1,8 @@
+{
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/.venv/**": true,
+    "**/node_modules/**": true
+  },
+  "search.followSymlinks": false
+}

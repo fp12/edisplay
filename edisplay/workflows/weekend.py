@@ -44,7 +44,7 @@ def routine_saturday(**kwargs):
         job = chain(
             group(tasks),
             assemble_img.s(),
-            publish_img.s()
+            publish_img.s(full_refresh=devices.any_changed())
         )
         return job.apply_async()
     else:
@@ -82,7 +82,7 @@ def routine_sunday(**kwargs):
         job = chain(
             group(tasks),
             assemble_img.s(),
-            publish_img.s()
+            publish_img.s(full_refresh=devices.any_changed())
         )
         return job.apply_async()
 

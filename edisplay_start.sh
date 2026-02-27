@@ -19,15 +19,15 @@ celery -A edisplay.scheduler purge -f
 sleep 3
 
 echo "Starting Celery (GPIO) worker..."
-nohup celery -A edisplay.scheduler worker --loglevel=warning --logfile=tmp/celery_gpio.log --pool=solo --queues=gpio > tmp/nohup_gpio.log 2>&1 &
+nohup celery -A edisplay.scheduler_gpio worker --loglevel=warning --logfile=tmp/celery_gpio.log --pool=solo --queues=gpio > tmp/nohup_gpio.log 2>&1 &
 sleep 3
 
 echo "Starting Celery workers..."
-nohup celery -A edisplay.scheduler worker --loglevel=info --logfile=tmp/celery_workers.log --pool=threads --concurrency=2 --max-tasks-per-child=30 --max-memory-per-child=70000 > tmp/nohup_workers.log 2>&1 &
+nohup celery -A edisplay.scheduler worker --loglevel=info --logfile=tmp/celery_workers.log --pool=threads --concurrency=2 --max-tasks-per-child=10 --max-memory-per-child=60000 > tmp/nohup_workers.log 2>&1 &
 sleep 5
 
 echo "Starting Celery beat..."
-nohup celery -A edisplay.scheduler beat --loglevel=warning --logfile=tmp/celery_beat.log > tmp/nohup_beat.log 2>&1 &
+nohup celery -A edisplay.scheduler_beat beat --loglevel=warning --logfile=tmp/celery_beat.log > tmp/nohup_beat.log 2>&1 &
 sleep 5
 
 echo "Checking processes..."

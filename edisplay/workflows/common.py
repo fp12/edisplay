@@ -43,8 +43,8 @@ def routine_cleaning():
     return job.apply_async()
 
 
-@shared_task
-def routine_update_device_presence():
+@shared_task(bind=True)
+def routine_update_device_presence(self):
     return update_device_presence.si().set(countdown=30).apply_async()
 
 

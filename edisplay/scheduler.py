@@ -4,26 +4,10 @@ import platform
 from celery import Celery
 from celery.schedules import crontab
 
-
-def get_broker():
-    os_name = platform.system()
-    if os_name == 'Windows':
-        return 'amqp://guest:guest@localhost:5672//'
-    elif os_name == 'Linux':
-        return 'redis://localhost:6379/0'
-
-
-def get_backend():
-    os_name = platform.system()
-    if os_name == 'Windows':
-        results_dir = os.path.join('tmp', 'celery_results')
-        return f'file://{results_dir}'
-    elif os_name == 'Linux':
-        return 'redis://localhost:6379/0'
+from edisplay.scheduler_config import get_broker, get_backend, get_beat_schedule_filename
 
 
 scheduler = Celery('scheduler', broker=get_broker(), backend=get_backend())
-
 
 scheduler.conf.update(
     task_serializer='pickle',
@@ -32,113 +16,11 @@ scheduler.conf.update(
     timezone='America/Montreal',
     enable_utc=True,
     result_expires = 60*10,  # 10 minutes
-    beat_schedule_filename=os.path.join('tmp', 'celerybeat-schedule'),
+    beat_schedule_filename=get_beat_schedule_filename(),
 )
-
 
 scheduler.autodiscover_tasks([
     'edisplay.workflows.common',
     'edisplay.workflows.weekday',
     'edisplay.workflows.weekend',
 ])
-
-
-scheduler.conf.beat_schedule = {
-    # clear caches once a week
-    'weekly_0300': {
-        'task': 'edisplay.workflows.common.routine_cleaning',
-        'schedule': crontab(day_of_week=1, hour=3, minute=0), # Every Monday at 3:00
-    },
-
-    # caching things once during the night
-    'nightly_0400': {
-        'task': 'edisplay.workflows.common.routine_caching',
-        'schedule': crontab(hour=4, minute=0), # 4:00
-    },
-
-    # getting the display to sleep at midnight
-    'sleep_0000' : {
-        'task': 'edisplay.workflows.common.routine_sleep_display',
-        'schedule': crontab(hour=0, minute=0), # midnight
-    },
-
-    # background updates
-    'weekday_background': {
-        'task': 'edisplay.workflows.common.routine_update_device_presence',
-        'schedule': crontab(day_of_week='mon-fri', hour='6-23', minute='*'), # Mon-Fri 6:00 to 23:59 (every minute)
-    },
-    'weekend_background': {
-        'task': 'edisplay.workflows.common.routine_update_device_presence',
-        'schedule': crontab(day_of_week='sat-sun', hour='8-22', minute='*'), # Sat-Sun 8:00 to 22:59 (every minute)
-    },
-    'monitoring': {
-        'task': 'edisplay.workflows.common.monitor_performance',
-        'schedule': crontab(minute='*/5'), # every 5 minutes
-    },
-
-    # 1st early bird
-    'weekday_0600_659': {
-        'task': 'edisplay.workflows.weekday.routine_0600_0659',
-        'schedule': crontab(day_of_week='mon-thu', hour='6', minute='*'), # Mon-Thu 6:00 to 6:59 (every minute)
-    },
-
-    # 2nd early bird
-    'weekday_0700_0729': {
-        'task': 'edisplay.workflows.weekday.routine_0700_0729',
-        'schedule': crontab(day_of_week='mon-fri', hour='7', minute='0-29'), # Mon-Fri 7:00 to 7:29 (every minute)
-    },
-
-    # late bloomers
-    'weekday_0730_0759': {
-        'task': 'edisplay.workflows.weekday.routine_0730_0829',
-        'schedule': crontab(day_of_week='mon-fri', hour='7', minute='30-59'), # Mon-Fri 7:30 to 7:59 (every minute)
-    },
-    'weekday_0800_0829': {
-        'task': 'edisplay.workflows.weekday.routine_0730_0829',
-        'schedule': crontab(day_of_week='mon-fri', hour='8', minute='0-29'), # Mon-Fri 8:00 to 8:29 (every minute)
-    },
-
-    'weekday_0900_2359': {
-        'task': 'edisplay.workflows.weekday.routine_0830_2300',
-        'schedule': crontab(day_of_week='mon-fri', hour='9-23', minute='*'), # Mon-Fri 9:00 to 23:59 (every hour)
-    },
-
-    # saturday
-    'saturday_0900_1359': {
-        'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'bus_stops': ['45N'], 'nba_results': True},
-        'schedule': crontab(day_of_week='sat', hour='9-13', minute='*'), # Sat 9:00 to 13:59 (every minute)
-    },
-    'saturday_1400_1459': {
-        'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'events_today': True, 'nba_results': True},
-        'schedule': crontab(day_of_week='sat', hour='14', minute='*'), # Sat 14:00 to 14:59 (every minute)
-    },
-    'saturday_1500_1530': {
-        'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'bus_stops': ['47E'], 'nba_results': True},
-        'schedule': crontab(day_of_week='sat', hour='15', minute='0-30'), # Sat 15:00 to 15:30 (every minute)
-    },
-    'saturday_1531_1559': {
-        'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'events_today': True, 'nba_results': True},
-        'schedule': crontab(day_of_week='sat', hour='15', minute='31-59'), # Sat 15:31 to 15:59 (every minute)
-    },
-    'saturday_1600_2359': {
-        'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'events_tomorrow': True, 'nba_games': True},
-        'schedule': crontab(day_of_week='sat', hour='16-23', minute='*'), # Sat 16:00 to 23:59 (every minute)
-    },
-
-    # sunday
-    'sunday_0900_1659': {
-        'task': 'edisplay.workflows.weekend.routine_sunday',
-        'kwargs': {'events_today': True, 'nba_results': True},
-        'schedule': crontab(day_of_week='sun', hour='9-16', minute='*'), # Sat 9:00 to 16:59 (every minute)
-    },
-    'sunday_1700_2359': {
-        'task': 'edisplay.workflows.weekend.routine_sunday',
-        'kwargs': {'events_tomorrow': True, 'nba_games': True},
-        'schedule': crontab(day_of_week='sun', hour='17-23', minute='*'), # Sat 17:00 to 23:59 (every minute)
-    },
-}

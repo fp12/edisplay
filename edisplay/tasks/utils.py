@@ -1,3 +1,4 @@
+import logging
 from functools import wraps
 from pathlib import Path
 from datetime import datetime
@@ -34,7 +35,7 @@ def clear_cached_images(pattern):
         try:
             if file_path.is_file():
                 file_path.unlink()
-                print(f'Deleted: {file_path}')
+                logging.debug(f'Deleted: {file_path}')
         except OSError as e:
             print(f'Error deleting {file_path}: {e}')
 
@@ -43,10 +44,9 @@ def fetch_cached_image(template, date):
     date = format_date(date, format='yyyy-MM-dd') if isinstance(date, datetime) else date
     im_file_path = Path('tmp') / template.substitute({'date': date})
     if im_file_path.exists():
-        print(f'Loading cached image from {im_file_path}')
         with Image.open(im_file_path) as im:
             im.load()
             # Create a copy so we can close the file safely
             return im.copy()
-    print(f'Couldn\'t fetch cached image {im_file_path}')
+    logging.debug(f'Couldn\'t fetch cached image {im_file_path}')
     return None
