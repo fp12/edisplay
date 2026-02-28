@@ -1,11 +1,12 @@
 import asyncio
 import aiohttp
 
-import redis
+from redis import Redis
 from celery import shared_task
 
 from edisplay.secrets import get_secret
 from edisplay.redis_utils import redis_to_int, redis_to_bool
+from edisplay.logging_config import network_presence_logger as logger
 
 
 CONNECTION_EXPIRATION = 900  # 15min
@@ -17,7 +18,7 @@ class DevicePresence:
         self.connected = []
         self.changed = []
 
-        r = redis.Redis(host='localhost', port=6379, db=0)
+        r = Redis(host='localhost', port=6379, db=0)
         for id_ in ids:
             if get_secret('Devices')[id_]:
                 result = r.get(id_)
@@ -86,7 +87,7 @@ async def update_device_presence_impl():
     retry_delay = 5  # seconds
 
     async with aiohttp.ClientSession() as session:
-        r = redis.Redis(host='localhost', port=6379, db=0)
+        r = Redis(host='localhost', port=6379, db=0)
 
         router = AsusRouter(
             hostname=get_secret('Router', 'IP'),
@@ -99,7 +100,7 @@ async def update_device_presence_impl():
         for attempt in range(max_retries):
             try:
                 if await router.async_connect():
-                    if all_devices: = await router.async_get_data(AsusData.CLIENTS):
+                    if all_devices := await router.async_get_data(AsusData.CLIENTS):
                         debug_msg = 'Device presence: '
                         monitored_devices = get_secret('Devices')
                         for id_, monitored_device in monitored_devices.items():
@@ -111,21 +112,21 @@ async def update_device_presence_impl():
                                     if device := all_devices.get(mac):
                                         connected = connected or device.state == ConnectionState.CONNECTED
                                     else:
-                                        print(f'Unregistered device {id_} with mac {mac}')
+                                        logger.warning(f'Unregistered device {id_} with mac {mac}')
 
                                 connected = int(connected)
                                 updated = 1 if connected != previous else 0
                                 r.setex(f'{id_}-Updated', CONNECTION_EXPIRATION, updated)
                                 r.setex(id_, CONNECTION_EXPIRATION, connected)
                                 debug_msg += f'{id_}: {bool(previous)}>{bool(connected)} | '
-                        print(debug_msg)
+                        logger.info(debug_msg)
                     else:
-                        print('Could not devices list from router')
+                        logger.warning('Could not devices list from router')
 
                 break  # exit retry loop
 
             except Exception as e:
-                print(f'update_device_presence raised an Exception: {e}')
+                logger.warning(f'update_device_presence raised an Exception: {e}')
                 if attempt == max_retries - 1:
                     raise  # let owning task handle it
 
@@ -139,21 +140,21 @@ async def update_device_presence_impl():
                     await asyncio.gather(*tasks, return_exceptions=True)
                 await asyncio.sleep(0.25)
             
-            print(f'Retrying. Attempt {attempt}/{max_retries}.')
+            logger.warning(f'Retrying. Attempt {attempt}/{max_retries}.')
             await asyncio.sleep(retry_delay)
 
 
 @shared_task
-def update_device_presence():
+def update_device_presence(ignore_result=True):
     try:
         asyncio.run(update_device_presence_impl())
     except Exception as exc:
-        print(f'update_device_presence failed: {exc}')
+        logger.error(f'update_device_presence failed: {exc}')
 
 
 def is_device_connected(id_):
     if get_secret('Devices')[id_]:
-        r = redis.Redis(host='localhost', port=6379, db=0)
+        r = Redis(host='localhost', port=6379, db=0)
         result = r.get(id_)
         return redis_to_bool(result)
     return False
@@ -161,14 +162,14 @@ def is_device_connected(id_):
 
 def has_device_status_changed_recently(id_):
     if get_secret('Devices')[id_]:
-        r = redis.Redis(host='localhost', port=6379, db=0)
+        r = Redis(host='localhost', port=6379, db=0)
         result = r.get(f'{id_}-Updated')
         return redis_to_bool(result)
     return False
 
 
 def are_devices_connected(ids, comp):
-    r = redis.Redis(host='localhost', port=6379, db=0)
+    r = Redis(host='localhost', port=6379, db=0)
     results = []
     for id_ in ids:
         if monitored_device := get_secret('Devices')[id_]:

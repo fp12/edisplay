@@ -53,6 +53,7 @@ def routine_saturday(**kwargs):
             job = sleep_display.s()
             return job.apply_async()
 
+
 @shared_task
 def routine_sunday(**kwargs):
     devices = get_devices_presence(['id0', 'id1', 'id2'])

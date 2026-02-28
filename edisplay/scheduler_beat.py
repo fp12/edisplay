@@ -70,9 +70,16 @@ scheduler_beat.conf.beat_schedule = {
         'task': 'edisplay.workflows.weekday.routine_0730_0829',
         'schedule': crontab(day_of_week='mon-fri', hour='8', minute='*'),
     },
-
+    'weekday_0830': {
+        'task': 'edisplay.workflows.weekday.routine_0830',
+        'schedule': crontab(day_of_week='mon-fri', hour='8', minute='30'),
+    },
+    'weekday_0831_8059': {
+        'task': 'edisplay.workflows.weekday.routine_0831_2300',
+        'schedule': crontab(day_of_week='mon-fri', hour='8', minute='31-59'),
+    },
     'weekday_0900_2359': {
-        'task': 'edisplay.workflows.weekday.routine_0830_2300',
+        'task': 'edisplay.workflows.weekday.routine_0831_2300',
         'schedule': crontab(day_of_week='mon-fri', hour='9-23', minute='*'),
     },
 
