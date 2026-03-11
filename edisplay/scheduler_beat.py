@@ -18,15 +18,15 @@ scheduler_beat.conf.update(
 
 scheduler_beat.conf.beat_schedule = {
     # clear caches once a week
-    'weekly_0300': {
+    'weekly_0100': {
         'task': 'edisplay.workflows.common.routine_cleaning',
-        'schedule': crontab(day_of_week=1, hour=3, minute=0),
+        'schedule': crontab(day_of_week=1, hour=1, minute=0),
     },
 
     # caching things once during the night
     'nightly_0400': {
         'task': 'edisplay.workflows.common.routine_caching',
-        'schedule': crontab(hour=1, minute=0),
+        'schedule': crontab(hour=4, minute=0),
     },
 
     # getting the display to sleep at midnight

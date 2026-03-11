@@ -116,7 +116,7 @@ def routine_0831_2300():
         return job.apply_async()
 
     elif devices.any_connected() and devices.any_changed():
-        print('a device is back: getting the single image out')
+        print('id0 or id2 are back: getting the single image in')
         job = routine_0830.s()
         return job.apply_async()
 

@@ -83,6 +83,7 @@ def fetch_library_info_img():
             im.load()
             # Create a copy so we can close the file safely
             return {'library': im.copy()}
+    return {}
 
 
 if __name__ == '__main__':

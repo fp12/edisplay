@@ -31,6 +31,10 @@ def reset_epd():
 @shared_task(queue='gpio')
 def assemble_img(panels, align='top'):
     if isinstance(panels, list):
+        # warn and remove non dict panels
+        if any(not isinstance(panel, dict) for panel in panels):
+            print(panels)
+            panels = [panel for panel in panels if isinstance(panel, dict)]
         # merging the results (array of dict to single dict)
         images = reduce(lambda d1, d2: d1 | d2, panels)
     elif isinstance(panels, dict):
