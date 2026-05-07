@@ -38,7 +38,8 @@ def get_weather_icon(weather_code):
             path = 'wi-cloud.png'
         case 45.0 | 48.0:
             path = 'wi-day-fog.png'
-        # case 51.0 | 53.0 | 55.0:
+        case 51.0 | 53.0 | 55.0:
+            path = 'wi-day-sprinkle.png'
         # case 56.0 | 57.0:
         case 61.0 | 63.0 | 65.0:
             path = 'wi-day-rain.png'
