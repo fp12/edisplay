@@ -54,15 +54,31 @@ def get_results(date_from, date_to):
     date_from = format_date(date_from, format='yyyy-MM-dd') if isinstance(date_from, datetime) else date_from
     date_to = format_date(date_to, format='yyyy-MM-dd') if isinstance(date_to, datetime) else date_to
 
-    game_log = LeagueGameLog(date_from_nullable=date_from, date_to_nullable=date_to)
+    month = date_from.split('-')[1]
+    season_types = []
+    if month in ['09', '10', '11']:
+        season_types.append('Pre Season')
+    if month in ['10', '11', '12', '01', '02', '03', '04', '05']:
+        season_types.append('Regular Season')
+    if month in ['02']:
+        season_types.append('All Star')
+    if month in ['04', '05', '06']:
+        season_types.append('PlayIn')
+        season_types.append('Playoffs')
 
     games = {}
-    for game_raw in game_log.league_game_log.data['data']:
-        game = Game(*game_raw)
-        if games.get(game.game_id):
-            games[game.game_id] += f'{game.pts:3} {game.team_abbreviation}'
-        else:
-            games[game.game_id] = f'{game.team_abbreviation} {game.pts:3}-'
+    for season_type in season_types:
+        game_log = LeagueGameLog(
+            date_from_nullable=date_from,
+            date_to_nullable=date_to,
+            season_type_all_star=season_type,
+        )
+        for game_raw in game_log.league_game_log.data['data']:
+            game = Game(*game_raw)
+            if games.get(game.game_id):
+                games[game.game_id] += f'{game.pts:3} {game.team_abbreviation}'
+            else:
+                games[game.game_id] = f'{game.team_abbreviation} {game.pts:3}-'
     
     return sorted([matchup for _, matchup in games.items()], key=_prio)
 
@@ -80,6 +96,45 @@ def get_games(date):
         matchups.append(f'{matchup[:3]} @ {matchup[-3:]}')
 
     return sorted(matchups, key=_prio)
+
+
+def _wnba_prio(matchup):
+    if 'IND' in matchup:
+        return 0
+    if 'NYL' in matchup:
+        return 1
+    return 99
+
+
+def get_wnba_results(date_from, date_to):
+    from nba_api.stats.endpoints import LeagueGameLog
+
+    date_from = format_date(date_from, format='yyyy-MM-dd') if isinstance(date_from, datetime) else date_from
+    date_to = format_date(date_to, format='yyyy-MM-dd') if isinstance(date_to, datetime) else date_to
+
+    month = date_from.split('-')[1]
+    season_types = []
+    if month in ['05', '06', '07', '08']:
+        season_types.append('Regular Season')
+    if month in ['08', '09', '10']:
+        season_types.append('Playoffs')
+
+    games = {}
+    for season_type in season_types:
+        game_log = LeagueGameLog(
+            date_from_nullable=date_from,
+            date_to_nullable=date_to,
+            season_type_all_star=season_type,
+            league_id_nullable='10',
+        )
+        for game_raw in game_log.league_game_log.data['data']:
+            game = Game(*game_raw)
+            if games.get(game.game_id):
+                games[game.game_id] += f'{game.pts:3} {game.team_abbreviation}'
+            else:
+                games[game.game_id] = f'{game.team_abbreviation} {game.pts:3}-'
+
+    return sorted([matchup for _, matchup in games.items()], key=_wnba_prio)
 
 
 if __name__ == '__main__':

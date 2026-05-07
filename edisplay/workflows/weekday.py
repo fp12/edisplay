@@ -5,7 +5,7 @@ from celery import chain, group, shared_task
 from edisplay.tasks.time import generate_date_img, generate_datetime_img, generate_time_img
 from edisplay.tasks.calendar import fetch_events_img
 from edisplay.tasks.meteo import generate_meteo_img
-from edisplay.tasks.nba import fetch_nba_results_img, fetch_nba_games_img
+from edisplay.tasks.nba import fetch_nba_results_img, fetch_nba_games_img, fetch_wnba_results_img
 from edisplay.tasks.library import fetch_library_info_img
 from edisplay.tasks.stm import generate_stm_img
 from edisplay.tasks.image import assemble_img, publish_img, sleep_display
@@ -103,6 +103,7 @@ def routine_0830():
             fetch_events_img.s(now),
             fetch_nba_results_img.s(yesterday),
             fetch_nba_games_img.s(now),
+            fetch_wnba_results_img.s(yesterday),
         ),
         assemble_img.s(align='center'),
         publish_img.s(full_refresh=True)
@@ -126,6 +127,7 @@ def routine_0831_2300():
             fetch_library_info_img.s(),
             fetch_nba_games_img.s(now),
             fetch_nba_results_img.s(yesterday),
+            fetch_wnba_results_img.s(yesterday),
         )
         
         job = chain(
@@ -151,6 +153,8 @@ def routine_tuesday_1900_1959():
     devices = get_devices_presence()
 
     if devices.is_connected('id1'):
+        now = datetime.now()
+        
         day_group = group(
             generate_time_img.s(),
             generate_stm_img.s(['45N']),
