@@ -16,7 +16,7 @@ def generate_date_img():
     now = datetime.now()
     formatted_date = format_date(now, format="EEEE d MMMM", locale='fr_FR')
 
-    text = ImageText.Text(formatted_date, Quicksand.LIGHT.size(28))
+    text = ImageText.Text(formatted_date, Quicksand.MEDIUM.size(35))
     x = (WIDTH - text.get_length()) / 2.0
     y = PADDING_DEFAULT
     d.text((x, y), text, BLACK)
@@ -33,7 +33,7 @@ def generate_datetime_img():
     formatted_date = format_date(now, format="EEEE d MMMM", locale='fr_FR')
     formatted_time = format_time(now, format="H:mm", locale='fr_FR')
 
-    text = ImageText.Text(formatted_date, Quicksand.LIGHT.size(28))
+    text = ImageText.Text(formatted_date, Quicksand.MEDIUM.size(35))
     x = (WIDTH - text.get_length()) / 2.0
     y = PADDING_DEFAULT
     d.text((x, y), text, BLACK)
