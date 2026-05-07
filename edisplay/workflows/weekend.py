@@ -9,12 +9,12 @@ from edisplay.tasks.nba import fetch_nba_results_img, fetch_nba_games_img
 from edisplay.tasks.library import fetch_library_info_img
 from edisplay.tasks.stm import generate_stm_img
 from edisplay.tasks.image import assemble_img, publish_img, sleep_display
-from edisplay.tasks.network import is_device_connected, are_devices_connected, has_device_status_changed_recently, get_devices_presence
+from edisplay.devices import get_devices_presence
 
 
 @shared_task
 def routine_saturday(**kwargs):
-    devices = get_devices_presence(['id0', 'id1', 'id2'])
+    devices = get_devices_presence()
 
     if devices.any_connected():
         now = datetime.now()
@@ -56,7 +56,7 @@ def routine_saturday(**kwargs):
 
 @shared_task
 def routine_sunday(**kwargs):
-    devices = get_devices_presence(['id0', 'id1', 'id2'])
+    devices = get_devices_presence()
 
     if devices.any_connected():
         now = datetime.now()

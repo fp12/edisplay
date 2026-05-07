@@ -74,13 +74,28 @@ scheduler_beat.conf.beat_schedule = {
         'task': 'edisplay.workflows.weekday.routine_0830',
         'schedule': crontab(day_of_week='mon-fri', hour='8', minute='30'),
     },
-    'weekday_0831_8059': {
+    'weekday_0831_0859': {
         'task': 'edisplay.workflows.weekday.routine_0831_2300',
         'schedule': crontab(day_of_week='mon-fri', hour='8', minute='31-59'),
     },
+
+    # most of the week afternoon / evening
     'weekday_0900_2359': {
         'task': 'edisplay.workflows.weekday.routine_0831_2300',
-        'schedule': crontab(day_of_week='mon-fri', hour='9-23', minute='*'),
+        'schedule': crontab(day_of_week='mon,wed,thu,fri', hour='9-23', minute='*'),
+    },
+    # tuesday special
+    'tuesday_0900_1859': {
+        'task': 'edisplay.workflows.weekday.routine_0831_2300',
+        'schedule': crontab(day_of_week='tue', hour='9-18', minute='*'),
+    },
+    'tuesday_1900_1959': {
+        'task': 'edisplay.workflows.weekday.routine_tuesday_1900_1959',
+        'schedule': crontab(day_of_week='tue', hour='19', minute='*'),
+    },
+    'tuesday_2000_2359': {
+        'task': 'edisplay.workflows.weekday.routine_0831_2300',
+        'schedule': crontab(day_of_week='tue', hour='20-23', minute='*'),
     },
 
     # saturday

@@ -9,15 +9,16 @@ from edisplay.tasks.nba import fetch_nba_results_img, fetch_nba_games_img
 from edisplay.tasks.library import fetch_library_info_img
 from edisplay.tasks.stm import generate_stm_img
 from edisplay.tasks.image import assemble_img, publish_img, sleep_display
-from edisplay.tasks.network import is_device_connected, are_devices_connected, has_device_status_changed_recently, get_devices_presence
 from edisplay.tasks.message import generate_message_img
+from edisplay.devices import get_devices_presence
 
 
 @shared_task
 def routine_0600_0659():
-    now = datetime.now()
+    devices = get_devices_presence()
 
-    if is_device_connected('id1'):
+    if devices.is_connected('id1'):
+        now = datetime.now()
         job = chain(
             group(
                 generate_time_img.s(),
@@ -30,19 +31,25 @@ def routine_0600_0659():
             publish_img.s()
         )
         return job.apply_async()
+    
+    elif devices.any_changed():
+        print('no device connected: getting into sleep mode')
+        job = sleep_display.s()
+        return job.apply_async()
 
 
 @shared_task
 def routine_0700_0729():
-    now = datetime.now()
-    yesterday = now - timedelta(days=1)
+    devices = get_devices_presence()
 
-    if True: # is_device_connected('id2'):
-        id1_updated = has_device_status_changed_recently('id1')
-        bus_stops = ['45N', '47E', '197E'] if is_device_connected('id1') else ['47E', '197E']
+    if devices.is_connected('id2'):
+        now = datetime.now()
+        yesterday = now - timedelta(days=1)
+        bus_stops = ['45N', '47E', '197E'] if devices.is_connected('id1') else ['47E', '197E']
         job = chain(
             group(
                 generate_datetime_img.s(),
+                generate_message_img.s('weekday_morning'),
                 generate_stm_img.s(bus_stops),
                 generate_meteo_img.s(now, now),
                 fetch_nba_results_img.s(yesterday),
@@ -50,28 +57,40 @@ def routine_0700_0729():
             assemble_img.s(),
             publish_img.s()
         )
-        return job.apply_async(full_refresh=id1_updated)
+        return job.apply_async(full_refresh=devices.has_changed('id1'))
+    
+    elif devices.any_changed():
+        print('no device connected: getting into sleep mode')
+        job = sleep_display.s()
+        return job.apply_async()
 
 
 @shared_task
 def routine_0730_0829():
-    now = datetime.now()
-    yesterday = now - timedelta(days=1)
+    devices = get_devices_presence()
 
-    id1_updated = has_device_status_changed_recently('id1')
+    if devices.any_connected():
+        now = datetime.now()
+        yesterday = now - timedelta(days=1)
 
-    job = chain(
-        group(
-            generate_datetime_img.s(),
-            generate_message_img.s('weekday_morning'),
-            fetch_events_img.s(now),
-            generate_meteo_img.s(now, now),
-            fetch_nba_results_img.s(yesterday),
-        ),
-        assemble_img.s(),
-        publish_img.s(full_refresh=id1_updated)
-    )
-    return job.apply_async()
+        job = chain(
+            group(
+                generate_datetime_img.s(),
+                generate_message_img.s('weekday_morning'),
+                fetch_events_img.s(now),
+                generate_meteo_img.s(now, now),
+                fetch_nba_results_img.s(yesterday),
+            ),
+            assemble_img.s(),
+            publish_img.s(full_refresh=devices.has_changed('id1'))
+        )
+        return job.apply_async()
+    
+    elif devices.any_changed():
+        print('no device connected: getting into sleep mode')
+        job = sleep_display.s()
+        return job.apply_async()
+
 
 @shared_task
 def routine_0830():
@@ -93,9 +112,9 @@ def routine_0830():
 
 @shared_task
 def routine_0831_2300():
-    devices = get_devices_presence(['id0', 'id1', 'id2'])
+    devices = get_devices_presence()
 
-    if is_device_connected('id1'):
+    if devices.is_connected('id1'):
         now = datetime.now()
         yesterday = now - timedelta(days=1)
         
@@ -106,6 +125,7 @@ def routine_0831_2300():
             generate_meteo_img.s(now, now),
             fetch_library_info_img.s(),
             fetch_nba_games_img.s(now),
+            fetch_nba_results_img.s(yesterday),
         )
         
         job = chain(
@@ -118,6 +138,37 @@ def routine_0831_2300():
     elif devices.any_connected() and devices.any_changed():
         print('id0 or id2 are back: getting the single image in')
         job = routine_0830.s()
+        return job.apply_async()
+
+    elif devices.any_changed():
+        print('no device connected: getting into sleep mode')
+        job = sleep_display.s()
+        return job.apply_async()
+
+
+@shared_task
+def routine_tuesday_1900_1959():
+    devices = get_devices_presence()
+
+    if devices.is_connected('id1'):
+        day_group = group(
+            generate_time_img.s(),
+            generate_stm_img.s(['45N']),
+            generate_meteo_img.s(now, now),
+            fetch_events_img.s(now),
+            fetch_library_info_img.s(),
+        )
+
+        job = chain(
+            day_group,
+            assemble_img.s(),
+            publish_img.s(full_refresh=devices.has_changed('id1'))
+        )
+        return job.apply_async()
+
+    elif devices.any_connected() and devices.any_changed():
+        print('id0 or id2 are back: getting the single image in')
+        job = routine_0831_2300.s()
         return job.apply_async()
 
     elif devices.any_changed():

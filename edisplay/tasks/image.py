@@ -62,7 +62,8 @@ def assemble_img(panels, align='top'):
     vertical_add_image('stm')
     vertical_add_image('meteo')
     vertical_add_image('library')
-    vertical_add_image('nba')
+    vertical_add_image('nba_results')
+    vertical_add_image('nba_games')
 
     return im
 

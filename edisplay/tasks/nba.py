@@ -94,12 +94,12 @@ def clear_cached_nba_img():
 @shared_task
 def fetch_nba_results_img(date):
     if im := fetch_cached_image(Template('nba_results_$date.png'), date):
-        return {'nba': im}
+        return {'nba_results': im}
     return {}
 
 
 @shared_task
 def fetch_nba_games_img(date):
     if im := fetch_cached_image(Template('nba_games_$date.png'), date):
-        return {'nba': im}
+        return {'nba_games': im}
     return {}
