@@ -50,7 +50,7 @@ scheduler_beat.conf.beat_schedule = {
     },
 
     # 1st early bird
-    'weekday_0600_659': {
+    'weekday_0600_0659': {
         'task': 'edisplay.workflows.weekday.routine_0600_0659',
         'schedule': crontab(day_of_week='mon-thu', hour='6', minute='*'),
     },
@@ -68,7 +68,7 @@ scheduler_beat.conf.beat_schedule = {
     },
     'weekday_0800_0829': {
         'task': 'edisplay.workflows.weekday.routine_0730_0829',
-        'schedule': crontab(day_of_week='mon-fri', hour='8', minute='*'),
+        'schedule': crontab(day_of_week='mon-fri', hour='8', minute='0-29'),
     },
     'weekday_0830': {
         'task': 'edisplay.workflows.weekday.routine_0830',
