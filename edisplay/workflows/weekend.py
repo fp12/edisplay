@@ -5,7 +5,7 @@ from celery import chain, group, shared_task
 from edisplay.tasks.time import generate_date_img, generate_datetime_img, generate_time_img
 from edisplay.tasks.calendar import fetch_events_img
 from edisplay.tasks.meteo import generate_meteo_img
-from edisplay.tasks.nba import fetch_nba_results_img, fetch_nba_games_img
+from edisplay.tasks.nba import fetch_nba_results_img, fetch_nba_games_img, fetch_wnba_results_img
 from edisplay.tasks.library import fetch_library_info_img
 from edisplay.tasks.stm import generate_stm_img
 from edisplay.tasks.image import assemble_img, publish_img, sleep_display
@@ -79,6 +79,9 @@ def routine_sunday(**kwargs):
             
             if kwargs.get('nba_games'):
                 tasks.append(fetch_nba_games_img.s(now))
+
+            if kwargs.get('wnba_results'):
+                tasks.append(fetch_wnba_results_img.s(yesterday))
 
         job = chain(
             group(tasks),

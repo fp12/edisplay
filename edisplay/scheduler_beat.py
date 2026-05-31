@@ -99,36 +99,26 @@ scheduler_beat.conf.beat_schedule = {
     },
 
     # saturday
-    'saturday_0900_1359': {
+    'saturday_0900_1559': {
         'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'bus_stops': ['45N'], 'nba_results': True},
-        'schedule': crontab(day_of_week='sat', hour='9-13', minute='*'),
+        'kwargs': {'nba_results': True, 'wnba_results': True},
+        'schedule': crontab(day_of_week='sat', hour='9-15', minute='*'),
     },
-    'saturday_1400_1459': {
+    'saturday_1600_1659': {
         'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'events_today': True, 'nba_results': True},
-        'schedule': crontab(day_of_week='sat', hour='14', minute='*'),
+        'kwargs': {'bus_stops': ['45N'], 'nba_games': True},
+        'schedule': crontab(day_of_week='sat', hour='16', minute='*'),
     },
-    'saturday_1500_1530': {
-        'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'bus_stops': ['47E'], 'nba_results': True},
-        'schedule': crontab(day_of_week='sat', hour='15', minute='0-30'),
-    },
-    'saturday_1531_1559': {
-        'task': 'edisplay.workflows.weekend.routine_saturday',
-        'kwargs': {'events_today': True, 'nba_results': True},
-        'schedule': crontab(day_of_week='sat', hour='15', minute='31-59'),
-    },
-    'saturday_1600_2359': {
+    'saturday_1700_2359': {
         'task': 'edisplay.workflows.weekend.routine_saturday',
         'kwargs': {'events_tomorrow': True, 'nba_games': True},
-        'schedule': crontab(day_of_week='sat', hour='16-23', minute='*'),
+        'schedule': crontab(day_of_week='sat', hour='17-23', minute='*'),
     },
 
     # sunday
     'sunday_0900_1659': {
         'task': 'edisplay.workflows.weekend.routine_sunday',
-        'kwargs': {'events_today': True, 'nba_results': True},
+        'kwargs': {'events_today': True, 'nba_results': True, 'wnba_results': True},
         'schedule': crontab(day_of_week='sun', hour='9-16', minute='*'),
     },
     'sunday_1700_2359': {

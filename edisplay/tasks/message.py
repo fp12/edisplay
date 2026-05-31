@@ -4,7 +4,7 @@ from celery import shared_task
 from PIL import Image, ImageDraw, ImageText
 
 from edisplay.secrets import get_secret
-from edisplay.image_config import IMG_MODE, WHITE, BLACK, MESSAGE_SIZE, PADDING_DEFAULT, WIDTH
+from edisplay.image_config import IMG_MODE, WHITE, BLACK, MESSAGE_SIZE, WIDTH
 from edisplay.fonts import Quicksand
 
 

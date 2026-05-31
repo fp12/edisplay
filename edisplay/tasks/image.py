@@ -6,10 +6,10 @@ from functools import reduce
 from PIL import Image, ImageShow
 from celery import shared_task
 
-from edisplay.image_config import WHITE, IMG_MODE, WIDTH, HEIGHT, SIZE, PADDING_DEFAULT
+from edisplay.image_config import WHITE, IMG_MODE, WIDTH, HEIGHT, SIZE, TOP_PADDING
 
 
-PADDING_BETWEEN = 40
+PADDING_BETWEEN = 25
 MAX_PARTIAL_REFRESHES = 20
 COUNT_PARTIAL_REFRESHES = MAX_PARTIAL_REFRESHES + 1 # start with a full refresh
 EPD = None
@@ -46,7 +46,7 @@ def assemble_img(panels, align='top'):
         
     im = Image.new(IMG_MODE, SIZE, WHITE)
 
-    y = PADDING_DEFAULT
+    y = TOP_PADDING
 
     def vertical_add_image(name):
         nonlocal y
@@ -64,6 +64,7 @@ def assemble_img(panels, align='top'):
     vertical_add_image('library')
     vertical_add_image('nba_results')
     vertical_add_image('nba_games')
+    vertical_add_image('wnba_results')
 
     return im
 

@@ -18,7 +18,7 @@ def generate_date_img():
 
     text = ImageText.Text(formatted_date, Quicksand.MEDIUM.size(35))
     x = (WIDTH - text.get_length()) / 2.0
-    y = PADDING_DEFAULT
+    y = 0
     d.text((x, y), text, BLACK)
 
     return {'datetime': im}
@@ -35,7 +35,7 @@ def generate_datetime_img():
 
     text = ImageText.Text(formatted_date, Quicksand.MEDIUM.size(35))
     x = (WIDTH - text.get_length()) / 2.0
-    y = PADDING_DEFAULT
+    y = 0
     d.text((x, y), text, BLACK)
 
     y += text.get_bbox()[3] + PADDING_DEFAULT
@@ -56,7 +56,7 @@ def generate_time_img():
 
     text = ImageText.Text(formatted_time, Fira.RETINA.size(100))
     x = (WIDTH - text.get_length()) / 2.0
-    y = PADDING_DEFAULT
+    y = 0
     d.text((x, y), text, BLACK)
 
     return {'datetime': im}

@@ -4,7 +4,7 @@ from celery import shared_task, chain
 
 from edisplay.tasks.utils import independant_chain
 from edisplay.tasks.network import update_device_presence 
-from edisplay.tasks.nba import cache_nba_results, clear_cached_nba_img, cache_nba_games
+from edisplay.tasks.nba import cache_nba_results, clear_cached_nba_img, cache_nba_games, cache_wnba_results
 from edisplay.tasks.library import cache_library_info, clear_cached_library_info
 from edisplay.tasks.calendar import cache_events, clear_cached_events
 from edisplay.tasks.image import sleep_display, assemble_img, publish_img
@@ -27,6 +27,7 @@ def routine_caching():
     job = independant_chain([
         cache_nba_results.si(),
         cache_nba_games.si(),
+        cache_wnba_results.si(),
         cache_library_info.si(),
         cache_events.si(),
     ])
