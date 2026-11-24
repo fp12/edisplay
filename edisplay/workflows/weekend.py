@@ -9,6 +9,7 @@ from edisplay.tasks.nba import fetch_nba_results_img, fetch_nba_games_img, fetch
 from edisplay.tasks.library import fetch_library_info_img
 from edisplay.tasks.stm import generate_stm_img
 from edisplay.tasks.image import assemble_img, publish_img, sleep_display
+from edisplay.tasks.message import generate_message_img
 from edisplay.devices import get_devices_presence
 
 
@@ -63,7 +64,9 @@ def routine_sunday(**kwargs):
         yesterday = now - timedelta(days=1)
         tomorrow = now + timedelta(days=1)
 
-        tasks = [generate_time_img.s()]
+        tasks = [generate_datetime_img.s()]
+
+        # tasks.append(generate_message_img.s('special'))
 
         if kwargs.get('events_today'):
             tasks.append(fetch_events_img.s(now))

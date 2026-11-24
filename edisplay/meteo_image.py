@@ -104,29 +104,30 @@ def generate_image(date_from, date_to, size):
             x_snow += im_snow.getbbox()[2] - 10
             d.text((x_snow, y_snow + 3), text_snow)
 
-    with Image.open(get_icon_path('wi-time-8.png')) as im_time:
-        x_time = 10
-        y_time = y + text.get_bbox()[3] + 18
-        im_time = im_time.convert('RGB').resize((48, 48), Image.Resampling.BILINEAR)
-        im.paste(im_time, (x_time, y_time))
+    if meteo_daily:
+        with Image.open(get_icon_path('wi-time-8.png')) as im_time:
+            x_time = 10
+            y_time = y + text.get_bbox()[3] + 18
+            im_time = im_time.convert('RGB').resize((48, 48), Image.Resampling.BILINEAR)
+            im.paste(im_time, (x_time, y_time))
 
-    with Image.open(get_icon_path('wi-raindrop.png')) as im_rain:
-        x_rain = 60
-        y_rain = y + text.get_bbox()[3] + 20
-        im_rain = im_rain.convert('RGB').resize((48, 48), Image.Resampling.LANCZOS)
-        im.paste(im_rain, (x_rain, y_rain))
-        text_rain = ImageText.Text(f'{meteo_daily.rain_sum:.0f}mm', Quicksand.REGULAR.size(32))
-        x_rain += im_rain.getbbox()[2] - 10
-        d.text((x_rain, y_rain), text_rain)
+        with Image.open(get_icon_path('wi-raindrop.png')) as im_rain:
+            x_rain = 60
+            y_rain = y + text.get_bbox()[3] + 20
+            im_rain = im_rain.convert('RGB').resize((48, 48), Image.Resampling.LANCZOS)
+            im.paste(im_rain, (x_rain, y_rain))
+            text_rain = ImageText.Text(f'{meteo_daily.rain_sum:.0f}mm', Quicksand.REGULAR.size(32))
+            x_rain += im_rain.getbbox()[2] - 10
+            d.text((x_rain, y_rain), text_rain)
 
-    with Image.open(get_icon_path('wi-snowflake-cold.png')) as im_snow:
-        x_snow = 180
-        y_snow = y + text.get_bbox()[3] + 17
-        im_snow = im_snow.convert('RGB').resize((48, 48), Image.Resampling.LANCZOS)
-        im.paste(im_snow, (x_snow, y_snow))
-        text_snow = ImageText.Text(f'{meteo_daily.snowfall_sum:.0f}cm', Quicksand.REGULAR.size(32))
-        x_snow += im_snow.getbbox()[2] - 10
-        d.text((x_snow, y_snow + 3), text_snow)
+        with Image.open(get_icon_path('wi-snowflake-cold.png')) as im_snow:
+            x_snow = 180
+            y_snow = y + text.get_bbox()[3] + 17
+            im_snow = im_snow.convert('RGB').resize((48, 48), Image.Resampling.LANCZOS)
+            im.paste(im_snow, (x_snow, y_snow))
+            text_snow = ImageText.Text(f'{meteo_daily.snowfall_sum:.0f}cm', Quicksand.REGULAR.size(32))
+            x_snow += im_snow.getbbox()[2] - 10
+            d.text((x_snow, y_snow + 3), text_snow)
 
     return im
 

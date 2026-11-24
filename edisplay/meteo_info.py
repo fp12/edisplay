@@ -65,18 +65,17 @@ def get_info(date_from, date_to):
     params = {
         "latitude": get_secret('Meteo', 'Latitude'),
         "longitude": get_secret('Meteo', 'Longitude'),
-        "daily": MeteoDaily.get_variables(),
+        # "daily": MeteoDaily.get_variables(),
         "current": MeteoCurrent.get_variables(),
         "timezone": "America/New_York",
         "start_date": date_from,
         "end_date": date_to,
     }
     responses = openmeteo.weather_api(url, params=params)
-
     response = responses[0]
 
     meteo_current = MeteoCurrent(response.Current())
-    meteo_daily = MeteoDaily(response.Daily())
+    meteo_daily = None # MeteoDaily(response.Daily())
 
     return meteo_current, meteo_daily
 

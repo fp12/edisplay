@@ -4,7 +4,7 @@ from babel.dates import format_date, format_time
 from PIL import Image, ImageDraw, ImageText, ImageShow
 from celery import shared_task
 
-from edisplay.image_config import WHITE, BLACK, IMG_MODE, WIDTH, PADDING_DEFAULT, DATE_SIZE, DATETIME_SIZE, TIME_SIZE
+from edisplay.image_config import WHITE, BLACK, IMG_MODE, WIDTH, PADDING_DEFAULT, DATE_SIZE, DATETIME_SIZE, TIME_SIZE, H_CENTER_OFFSET
 from edisplay.fonts import Fira, Quicksand
 
 
@@ -17,7 +17,7 @@ def generate_date_img():
     formatted_date = format_date(now, format="EEEE d MMMM", locale='fr_FR')
 
     text = ImageText.Text(formatted_date, Quicksand.MEDIUM.size(35))
-    x = (WIDTH - text.get_length()) / 2.0
+    x = (WIDTH - text.get_length()) / 2.0 - H_CENTER_OFFSET
     y = 0
     d.text((x, y), text, BLACK)
 
@@ -34,13 +34,13 @@ def generate_datetime_img():
     formatted_time = format_time(now, format="H:mm", locale='fr_FR')
 
     text = ImageText.Text(formatted_date, Quicksand.MEDIUM.size(35))
-    x = (WIDTH - text.get_length()) / 2.0
+    x = (WIDTH - text.get_length()) / 2.0 - H_CENTER_OFFSET
     y = 0
     d.text((x, y), text, BLACK)
 
     y += text.get_bbox()[3] + PADDING_DEFAULT
     text = ImageText.Text(formatted_time, Fira.RETINA.size(100))
-    x = (WIDTH - text.get_length()) / 2.0
+    x = (WIDTH - text.get_length()) / 2.0 - H_CENTER_OFFSET
     d.text((x, y), text, BLACK)
 
     return {'datetime': im}
@@ -55,7 +55,7 @@ def generate_time_img():
     formatted_time = format_time(now, format="H:mm", locale='fr_FR')
 
     text = ImageText.Text(formatted_time, Fira.RETINA.size(100))
-    x = (WIDTH - text.get_length()) / 2.0
+    x = (WIDTH - text.get_length()) / 2.0 - H_CENTER_OFFSET
     y = 0
     d.text((x, y), text, BLACK)
 

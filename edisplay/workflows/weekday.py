@@ -118,11 +118,19 @@ def routine_0831_2300():
     if devices.is_connected('id1'):
         now = datetime.now()
         yesterday = now - timedelta(days=1)
-        
+
+        message = 'evening'
+
+        weekday = datetime.now().weekday()
+        if weekday in [0, 3, 4]:
+            message = 'evening_A'
+        elif weekday in [1, 2, 6]:
+            message = 'evening_B'
+
         day_group = group(
             generate_time_img.s(),
             fetch_events_img.s(now),
-            generate_message_img.s('evening'),
+            generate_message_img.s(message),
             generate_meteo_img.s(now, now),
             fetch_library_info_img.s(),
             fetch_nba_games_img.s(now),

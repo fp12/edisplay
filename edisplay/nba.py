@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pprint import pprint
 
@@ -112,7 +112,7 @@ def get_wnba_results(date_from, date_to):
     date_from = format_date(date_from, format='yyyy-MM-dd') if isinstance(date_from, datetime) else date_from
     date_to = format_date(date_to, format='yyyy-MM-dd') if isinstance(date_to, datetime) else date_to
 
-    month = date_from.split('-')[1]
+    year, month = date_from.split('-')[:2]
     season_types = []
     if month in ['05', '06', '07', '08']:
         season_types.append('Regular Season')
@@ -125,7 +125,8 @@ def get_wnba_results(date_from, date_to):
             date_from_nullable=date_from,
             date_to_nullable=date_to,
             season_type_all_star=season_type,
-            league_id_nullable='10',
+            league_id='10',
+            season=year,
         )
         for game_raw in game_log.league_game_log.data['data']:
             game = Game(*game_raw)

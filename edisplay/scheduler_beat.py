@@ -126,4 +126,14 @@ scheduler_beat.conf.beat_schedule = {
         'kwargs': {'events_tomorrow': True, 'nba_games': True},
         'schedule': crontab(day_of_week='sun', hour='17-23', minute='*'),
     },
+
+"""
+    # summer special
+    'summer_0900_2359': {
+        'task': 'edisplay.workflows.weekend.routine_sunday',
+        'kwargs': {'events_today': True, 'wnba_results': True},
+        'schedule': crontab(hour='9-23', minute='*'),
+    },
+"""
+
 }

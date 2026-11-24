@@ -32,9 +32,9 @@ def generate_message_img(category):
         im = Image.new(IMG_MODE, MESSAGE_SIZE, WHITE)
         d = ImageDraw.Draw(im, IMG_MODE)
 
-        text = ImageText.Text(content, Quicksand.SEMIBOLD.size(35))
+        text = ImageText.Text(content, Quicksand.SEMIBOLD.size(30))
 
-        x = (WIDTH - text.get_length()) / 2.0
+        x = (WIDTH - text.get_length()) / 2.0 - 10.0
         y = 0
         d.text((x, y), text, BLACK)
 
